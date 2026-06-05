@@ -1,3 +1,4 @@
+class_name PlayerInputBuffers
 extends Node
 
 const INVALID_INPUT_SEQ := 0xFFFFFFFF
@@ -15,7 +16,7 @@ class PeerBuffer:
 		last_held_input = MovementInputFrame.empty(-1)
 		synthetic_input = MovementInputFrame.empty(-1)
 
-@onready var server_network: Node = %ServerNetwork
+@onready var server_network: Network = %Network
 
 var _buffers_by_peer_id: Dictionary = {}
 var _missing_peer_input: MovementInputFrame = MovementInputFrame.empty(-1)

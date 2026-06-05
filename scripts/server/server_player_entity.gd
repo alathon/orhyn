@@ -6,6 +6,8 @@ extends BaseEntity
 
 var peer_id: int = -1
 
+var current_tick_context: Dictionary = {}
+
 func get_rid() -> RID:
 	return body.get_rid()
 

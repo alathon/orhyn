@@ -11,7 +11,7 @@ const SPAWN_POSITION := Vector3(-39.976143, 0.7148186, -40.79889)
 
 @onready var entities: Node = %Entities
 @onready var entity_tracker: EntityTracker = %EntityTracker
-@onready var server_network: Node = %ServerNetwork
+@onready var server_network: Node = %Network
 
 func _ready() -> void:
 	server_network.player_connected.connect(_on_player_connected)

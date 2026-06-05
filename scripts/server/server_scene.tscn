@@ -5,10 +5,13 @@
 [ext_resource type="Script" uid="uid://cl2lbdvark513" path="res://scripts/shared/ticker.gd" id="3_4tdu6"]
 [ext_resource type="Script" uid="uid://1dw21ukwu4vs" path="res://scripts/server/server_network.gd" id="4_ltp1w"]
 [ext_resource type="Script" uid="uid://78yuijk5ovty" path="res://scripts/server/entity_spawner.gd" id="5_x5607"]
-[ext_resource type="Script" uid="uid://dh1cfhwqu5vnb" path="res://scripts/server/player_input_handler.gd" id="6_ltp1w"]
+[ext_resource type="Script" uid="uid://dh1cfhwqu5vnb" path="res://scripts/server/player_input_buffers.gd" id="6_ltp1w"]
 [ext_resource type="PackedScene" uid="uid://dijrm0tjvc0xj" path="res://scripts/server/server_player_entity.tscn" id="7_52413"]
 [ext_resource type="Script" uid="uid://d0yoksrs3f6od" path="res://scripts/server/server_game_systems.gd" id="7_x5607"]
 [ext_resource type="Script" uid="uid://c544qf42hwrs0" path="res://scripts/server/entity_tracker.gd" id="8_entity"]
+[ext_resource type="Script" uid="uid://cyo2tal1uilyh" path="res://scripts/server/systems/player_inputs_system.gd" id="9_45lij"]
+[ext_resource type="Script" uid="uid://d32luervdahj5" path="res://scripts/server/systems/player_movement_system.gd" id="9_dmm45"]
+[ext_resource type="Script" uid="uid://blaejrs7mv3f7" path="res://scripts/server/systems/movement_snapshot_system.gd" id="12_efkvs"]
 
 [sub_resource type="Environment" id="Environment_m7jmp"]
 
@@ -28,7 +31,7 @@ metadata/_edit_lock_ = true
 unique_name_in_owner = true
 script = ExtResource("3_4tdu6")
 
-[node name="ServerNetwork" type="Node" parent="." unique_id=339430634]
+[node name="Network" type="Node" parent="." unique_id=339430634]
 unique_name_in_owner = true
 script = ExtResource("4_ltp1w")
 
@@ -41,12 +44,27 @@ unique_name_in_owner = true
 script = ExtResource("5_x5607")
 player_entity_scene = ExtResource("7_52413")
 
-[node name="PlayerInputHandler" type="Node" parent="." unique_id=339430637]
+[node name="PlayerInputBuffers" type="Node" parent="." unique_id=339430637]
 unique_name_in_owner = true
 script = ExtResource("6_ltp1w")
 
 [node name="ServerGameSystems" type="Node" parent="." unique_id=339430638]
 script = ExtResource("7_x5607")
+
+[node name="PlayerMovementSystem" type="Node" parent="ServerGameSystems" unique_id=1875064259]
+unique_name_in_owner = true
+script = ExtResource("9_dmm45")
+metadata/_custom_type_script = "uid://d32luervdahj5"
+
+[node name="PlayerInputsSystem" type="Node" parent="ServerGameSystems" unique_id=1602953048]
+unique_name_in_owner = true
+script = ExtResource("9_45lij")
+metadata/_custom_type_script = "uid://cyo2tal1uilyh"
+
+[node name="MovementSnapshotSystem" type="Node" parent="ServerGameSystems" unique_id=1013293267]
+unique_name_in_owner = true
+script = ExtResource("12_efkvs")
+metadata/_custom_type_script = "uid://blaejrs7mv3f7"
 
 [node name="Entities" type="Node" parent="." unique_id=2012631697]
 unique_name_in_owner = true

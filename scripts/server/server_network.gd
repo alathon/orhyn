@@ -1,3 +1,4 @@
+class_name Network
 extends Node
 
 signal player_connected(peer_id: int)
