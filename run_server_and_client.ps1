@@ -29,23 +29,23 @@ function Start-GodotWindow
 }
 
 Start-GodotWindow `
-    -ScenePath "res://projects/server/server_scene.tscn" `
+    -ScenePath "res://projects/game-server/src/main.tscn" `
     -X $LeftX `
     -Y $TopY
 
 Start-Sleep -Milliseconds 500
 
 Start-GodotWindow `
-    -ScenePath "res://projects/client/client_scene.tscn" `
+    -ScenePath "res://projects/client/src/screens/ingame_screen.tscn" `
     -X $RightX `
     -Y $TopY
 
 Start-GodotWindow `
-    -ScenePath "res://projects/client/client_scene.tscn" `
+    -ScenePath "res://projects/client/src/screens/ingame_screen.tscn" `
     -X $LeftX `
     -Y $BottomY
 
 Start-GodotWindow `
-    -ScenePath "res://projects/client/client_scene.tscn" `
+    -ScenePath "res://projects/client/src/screens/ingame_screen.tscn" `
     -X $RightX `
     -Y $BottomY

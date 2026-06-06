@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://hn8q3dj44yod"]
 
-[ext_resource type="Script" uid="uid://bse8le1fndpvu" path="res://projects/shared/entities/physics_body.gd" id="1_df33t"]
-[ext_resource type="Script" uid="uid://ccv0ed6eium8m" path="res://projects/client/player_entity.gd" id="1_rlois"]
-[ext_resource type="Script" uid="uid://dsgccxqtvolap" path="res://projects/client/player_input.gd" id="2_mxrka"]
-[ext_resource type="Script" uid="uid://ctqhwc733e7kg" path="res://projects/client/camera_pivot.gd" id="3_ddyhw"]
-[ext_resource type="Script" uid="uid://2ga0sfxbj7o4" path="res://projects/client/smoothed_movement.gd" id="3_mu7t1"]
-[ext_resource type="Script" uid="uid://cx21mwf1sgs3l" path="res://projects/client/player_movement_reconciliation.gd" id="4_kc0s5"]
+[ext_resource type="Script" uid="uid://bse8le1fndpvu" path="res://projects/common/src/entities/physics_body.gd" id="1_df33t"]
+[ext_resource type="Script" uid="uid://ccv0ed6eium8m" path="res://projects/client/src/player_entity.gd" id="1_rlois"]
+[ext_resource type="Script" uid="uid://dsgccxqtvolap" path="res://projects/client/src/player_input.gd" id="2_mxrka"]
+[ext_resource type="Script" uid="uid://ctqhwc733e7kg" path="res://projects/client/src/camera_pivot.gd" id="3_ddyhw"]
+[ext_resource type="Script" uid="uid://2ga0sfxbj7o4" path="res://projects/client/src/smoothed_movement.gd" id="3_mu7t1"]
+[ext_resource type="Script" uid="uid://cx21mwf1sgs3l" path="res://projects/client/src/player_movement_reconciliation.gd" id="4_kc0s5"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_l2lw7"]
 

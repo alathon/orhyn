@@ -1,7 +1,6 @@
 class_name Systems
 extends Node
 
-@onready var ticker: Ticker = %Ticker
 @onready var entity_tracker: EntityTracker = %EntityTracker
 @onready var server_network: Network = %Network
 @onready var player_inputs_system: PlayerInputsSystem = %PlayerInputsSystem
@@ -26,9 +25,9 @@ class TickContext:
 		entities_moved.clear()
 
 func _ready() -> void:
-	ticker.before_tick.connect(_on_before_tick)
-	ticker.tick.connect(_on_tick)
-	ticker.after_tick.connect(_on_after_tick)
+	GlobalTicker.before_tick.connect(_on_before_tick)
+	GlobalTicker.tick.connect(_on_tick)
+	GlobalTicker.after_tick.connect(_on_after_tick)
 	tick_context = TickContext.new()
 
 func _on_before_tick(tick: int, delta: float):

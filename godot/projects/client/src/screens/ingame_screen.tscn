@@ -1,0 +1,49 @@
+[gd_scene format=3 uid="uid://gxc0uct42x"]
+
+[ext_resource type="Terrain3DMaterial" uid="uid://dxjiio8qse3mb" path="res://data/new_terrain_3d_material.tres" id="1_8nk2g"]
+[ext_resource type="Terrain3DAssets" uid="uid://cflggrxrtbfju" path="res://data/new_terrain_3d_assets.tres" id="1_f2dhx"]
+[ext_resource type="Script" uid="uid://cnq2s61glph30" path="res://projects/client/src/game_systems.gd" id="4_1dmei"]
+[ext_resource type="Script" uid="uid://dtmvbbgw50v4a" path="res://projects/client/src/api.gd" id="5_4drak"]
+[ext_resource type="Script" uid="uid://by42n0xut2t6e" path="res://projects/client/src/entity_spawner.gd" id="6_v2s3j"]
+[ext_resource type="PackedScene" uid="uid://hn8q3dj44yod" path="res://projects/client/src/player_entity.tscn" id="7_1dmei"]
+[ext_resource type="PackedScene" uid="uid://drt7o4vcdutmn" path="res://projects/client/src/remote_entity.tscn" id="8_4drak"]
+
+[sub_resource type="Environment" id="Environment_m7jmp"]
+
+[node name="Zone" type="Node3D" unique_id=1238542963]
+
+[node name="Terrain3D" type="Terrain3D" parent="." unique_id=327729889]
+data_directory = "res://data"
+material = ExtResource("1_8nk2g")
+assets = ExtResource("1_f2dhx")
+collision_mode = 4
+collision_layer = 2
+displacement_sharpness = 0.5
+top_level = true
+metadata/_edit_lock_ = true
+
+[node name="GameSystems" type="Node" parent="." unique_id=192668155]
+unique_name_in_owner = true
+script = ExtResource("4_1dmei")
+
+[node name="API" type="Node" parent="GameSystems" unique_id=1462841541]
+unique_name_in_owner = true
+script = ExtResource("5_4drak")
+
+[node name="EntitySpawner" type="Node" parent="GameSystems" unique_id=145268821]
+script = ExtResource("6_v2s3j")
+player_entity_scene = ExtResource("7_1dmei")
+remote_entity_scene = ExtResource("8_4drak")
+
+[node name="Entities" type="Node" parent="." unique_id=2012631697]
+unique_name_in_owner = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1496765935]
+environment = SubResource("Environment_m7jmp")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1442855236]
+transform = Transform3D(1, 0, 0, 0, 0.29914066, 0.954209, 0, -0.954209, 0.29914066, 0, 84.93894, 0)
+
+[node name="BootstrapCamera3D" type="Camera3D" parent="." unique_id=1335517837]
+transform = Transform3D(0.70710677, -0.40824828, 0.57735026, 0, 0.81649655, 0.57735026, -0.70710677, -0.40824828, 0.57735026, -45, 18, -45)
+current = true

@@ -3,11 +3,9 @@ extends Node
 
 const RUNTIME_CLIENT := "client"
 const RUNTIME_GAME_SERVER := "game-server"
-const RUNTIME_ORCHESTRATOR := "orchestrator"
 
 const CLIENT_SCENE_PATH := "res://projects/client/src/screens/login_screen.tscn"
-const GAME_SERVER_SCENE_PATH := "res://projects/game-server/src/zones/zone.tscn"
-const ORCHESTRATOR_SCENE_PATH := "res://projects/orchestrator/orchestrator.tscn"
+const GAME_SERVER_SCENE_PATH := "res://projects/game-server/src/main.tscn"
 
 
 func _ready() -> void:
@@ -42,8 +40,6 @@ func detect_runtime() -> String:
 	if not runtime_from_all_args.is_empty():
 		return runtime_from_all_args
 
-	if OS.has_feature(RUNTIME_ORCHESTRATOR):
-		return RUNTIME_ORCHESTRATOR
 	if OS.has_feature(RUNTIME_GAME_SERVER) or OS.has_feature("game_server"):
 		return RUNTIME_GAME_SERVER
 	if OS.has_feature(RUNTIME_CLIENT):
@@ -72,8 +68,6 @@ static func normalize_runtime(raw_runtime: String) -> String:
 			return RUNTIME_CLIENT
 		RUNTIME_GAME_SERVER, "server", "zone-server", "zone":
 			return RUNTIME_GAME_SERVER
-		RUNTIME_ORCHESTRATOR, "orch":
-			return RUNTIME_ORCHESTRATOR
 	return ""
 
 
@@ -81,8 +75,6 @@ static func get_scene_path_for_runtime(runtime: String) -> String:
 	match normalize_runtime(runtime):
 		RUNTIME_GAME_SERVER:
 			return GAME_SERVER_SCENE_PATH
-		RUNTIME_ORCHESTRATOR:
-			return ORCHESTRATOR_SCENE_PATH
 	return CLIENT_SCENE_PATH
 
 
@@ -90,6 +82,4 @@ func _get_runtime_feature_snapshot() -> Dictionary:
 	return {
 		RUNTIME_CLIENT: OS.has_feature(RUNTIME_CLIENT),
 		RUNTIME_GAME_SERVER: OS.has_feature(RUNTIME_GAME_SERVER),
-		"game_server": OS.has_feature("game_server"),
-		RUNTIME_ORCHESTRATOR: OS.has_feature(RUNTIME_ORCHESTRATOR),
 	}

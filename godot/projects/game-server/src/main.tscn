@@ -1,17 +1,16 @@
 [gd_scene format=3 uid="uid://ymt4ji7a18q1"]
 
-[ext_resource type="Terrain3DMaterial" uid="uid://dxjiio8qse3mb" path="res://data/new_terrain_3d_material.tres" id="1_moqai"]
-[ext_resource type="Terrain3DAssets" uid="uid://cflggrxrtbfju" path="res://data/new_terrain_3d_assets.tres" id="2_5g3dn"]
-[ext_resource type="Script" uid="uid://cl2lbdvark513" path="res://projects/shared/globals/ticker.gd" id="3_4tdu6"]
-[ext_resource type="Script" uid="uid://1dw21ukwu4vs" path="res://projects/server/server_network.gd" id="4_ltp1w"]
-[ext_resource type="Script" uid="uid://78yuijk5ovty" path="res://projects/server/entity_spawner.gd" id="5_x5607"]
-[ext_resource type="Script" uid="uid://dh1cfhwqu5vnb" path="res://projects/server/player_input_buffers.gd" id="6_ltp1w"]
-[ext_resource type="PackedScene" uid="uid://dijrm0tjvc0xj" path="res://projects/server/server_player_entity.tscn" id="7_52413"]
-[ext_resource type="Script" uid="uid://d0yoksrs3f6od" path="res://projects/server/server_game_systems.gd" id="7_x5607"]
-[ext_resource type="Script" uid="uid://c544qf42hwrs0" path="res://projects/server/entity_tracker.gd" id="8_entity"]
-[ext_resource type="Script" uid="uid://cyo2tal1uilyh" path="res://projects/server/systems/player_inputs_system.gd" id="9_45lij"]
-[ext_resource type="Script" uid="uid://d32luervdahj5" path="res://projects/server/systems/player_movement_system.gd" id="9_dmm45"]
-[ext_resource type="Script" uid="uid://blaejrs7mv3f7" path="res://projects/server/systems/movement_snapshot_system.gd" id="12_efkvs"]
+[ext_resource type="Terrain3DMaterial" uid="uid://dxjiio8qse3mb" path="res://data/new_terrain_3d_material.tres" id="1_cymac"]
+[ext_resource type="Terrain3DAssets" uid="uid://cflggrxrtbfju" path="res://data/new_terrain_3d_assets.tres" id="2_p61fd"]
+[ext_resource type="Script" uid="uid://1dw21ukwu4vs" path="res://projects/game-server/src/server_network.gd" id="3_1biav"]
+[ext_resource type="Script" uid="uid://c544qf42hwrs0" path="res://projects/game-server/src/entities/entity_tracker.gd" id="4_1fomv"]
+[ext_resource type="Script" uid="uid://78yuijk5ovty" path="res://projects/game-server/src/entities/entity_spawner.gd" id="5_w8eyp"]
+[ext_resource type="PackedScene" uid="uid://dijrm0tjvc0xj" path="res://projects/game-server/src/entities/player/server_player_entity.tscn" id="6_i54re"]
+[ext_resource type="Script" uid="uid://dh1cfhwqu5vnb" path="res://projects/game-server/src/player_input_buffers.gd" id="7_b73mu"]
+[ext_resource type="Script" uid="uid://d0yoksrs3f6od" path="res://projects/game-server/src/server_game_systems.gd" id="8_bkv5g"]
+[ext_resource type="Script" uid="uid://cyo2tal1uilyh" path="res://projects/game-server/src/tick_systems/player_inputs_system.gd" id="9_55gya"]
+[ext_resource type="Script" uid="uid://d32luervdahj5" path="res://projects/game-server/src/tick_systems/player_movement_system.gd" id="10_54rmr"]
+[ext_resource type="Script" uid="uid://blaejrs7mv3f7" path="res://projects/game-server/src/tick_systems/movement_snapshot_system.gd" id="11_tolh3"]
 
 [sub_resource type="Environment" id="Environment_m7jmp"]
 
@@ -19,52 +18,48 @@
 
 [node name="Terrain3D" type="Terrain3D" parent="." unique_id=327729889]
 data_directory = "res://data"
-material = ExtResource("1_moqai")
-assets = ExtResource("2_5g3dn")
+material = ExtResource("1_cymac")
+assets = ExtResource("2_p61fd")
 collision_mode = 4
 collision_layer = 2
 displacement_sharpness = 0.5
 top_level = true
 metadata/_edit_lock_ = true
 
-[node name="Ticker" type="Node" parent="." unique_id=1347141368]
-unique_name_in_owner = true
-script = ExtResource("3_4tdu6")
-
 [node name="Network" type="Node" parent="." unique_id=339430634]
 unique_name_in_owner = true
-script = ExtResource("4_ltp1w")
+script = ExtResource("3_1biav")
 
 [node name="EntityTracker" type="Node" parent="." unique_id=1554546362]
 unique_name_in_owner = true
-script = ExtResource("8_entity")
+script = ExtResource("4_1fomv")
 
 [node name="EntitySpawner" type="Node" parent="." unique_id=339430636]
 unique_name_in_owner = true
-script = ExtResource("5_x5607")
-player_entity_scene = ExtResource("7_52413")
+script = ExtResource("5_w8eyp")
+player_entity_scene = ExtResource("6_i54re")
 
 [node name="PlayerInputBuffers" type="Node" parent="." unique_id=339430637]
 unique_name_in_owner = true
-script = ExtResource("6_ltp1w")
+script = ExtResource("7_b73mu")
 
 [node name="TickSystems" type="Node" parent="." unique_id=339430638]
 unique_name_in_owner = true
-script = ExtResource("7_x5607")
+script = ExtResource("8_bkv5g")
 
 [node name="PlayerInputsSystem" type="Node" parent="TickSystems" unique_id=1602953048]
 unique_name_in_owner = true
-script = ExtResource("9_45lij")
+script = ExtResource("9_55gya")
 metadata/_custom_type_script = "uid://cyo2tal1uilyh"
 
 [node name="PlayerMovementSystem" type="Node" parent="TickSystems" unique_id=1875064259]
 unique_name_in_owner = true
-script = ExtResource("9_dmm45")
+script = ExtResource("10_54rmr")
 metadata/_custom_type_script = "uid://d32luervdahj5"
 
 [node name="MovementSnapshotSystem" type="Node" parent="TickSystems" unique_id=1013293267]
 unique_name_in_owner = true
-script = ExtResource("12_efkvs")
+script = ExtResource("11_tolh3")
 metadata/_custom_type_script = "uid://blaejrs7mv3f7"
 
 [node name="Entities" type="Node" parent="." unique_id=2012631697]

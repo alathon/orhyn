@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://d2mcmd7s6vx7b"]
 
-[ext_resource type="Script" uid="uid://dqpxwgr2sri5d" path="res://projects/editor/zones/zone_template.gd" id="1_5on6s"]
+[ext_resource type="Script" uid="uid://dqpxwgr2sri5d" path="res://projects/editor/src/zones/zone_template.gd" id="1_5on6s"]
 [ext_resource type="Shader" uid="uid://cvd0x7lon1ur6" path="res://addons/sky_3d/shaders/SkyMaterial.gdshader" id="2_fedth"]
 [ext_resource type="Texture2D" uid="uid://cfqk60lpl5ljv" path="res://addons/sky_3d/assets/resources/SNoise.tres" id="3_q0ixx"]
 [ext_resource type="Texture2D" uid="uid://cecwdqjol0ckd" path="res://addons/sky_3d/assets/textures/noiseClouds.png" id="4_o5mrh"]
