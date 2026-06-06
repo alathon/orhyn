@@ -21,7 +21,7 @@ function Start-GodotWindow
     )
 
     Start-Process godot -WorkingDirectory $ProjectPath -ArgumentList @(
-        "--path", ".",
+        "--path", "./godot",
         "--windowed",
         "--position", "$X,$Y",
         "--scene", $ScenePath
