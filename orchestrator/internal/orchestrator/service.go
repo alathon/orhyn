@@ -232,6 +232,16 @@ func (s *Service) handleClientMessage(p *peer, msg Message) {
 			return
 		}
 		if response.Type != "" {
+			if response.Type == TypeZoneRedirect {
+				s.log.Printf(
+					"area=orchestrator message=zone_redirect_issued client_peer=%d character_id=%d zone=%s address=%s port=%d",
+					p.id,
+					response.CharacterID,
+					response.ZoneID,
+					response.Address,
+					response.Port,
+				)
+			}
 			_ = p.send(response)
 		}
 	default:
@@ -299,11 +309,19 @@ func (s *Service) runMaintenance(ctx context.Context) {
 			}
 		case <-retryTicker.C:
 			for _, entry := range s.state.retryQueuedCharacterSelects() {
-				_, prepare, err := s.state.prepareInitialZone(entry.ClientPeerID, entry.CharacterID, entry.ZoneID)
+				response, err := s.state.createInitialZoneRedirect(entry.ClientPeerID, entry.CharacterID, entry.ZoneID)
 				if err != nil {
 					continue
 				}
-				s.sendToGamePeerForZone(entry.ZoneID, *prepare)
+				s.log.Printf(
+					"area=orchestrator message=queued_zone_redirect_issued client_peer=%d character_id=%d zone=%s address=%s port=%d",
+					entry.ClientPeerID,
+					response.CharacterID,
+					response.ZoneID,
+					response.Address,
+					response.Port,
+				)
+				s.sendToClientPeer(entry.ClientPeerID, response)
 			}
 		}
 	}

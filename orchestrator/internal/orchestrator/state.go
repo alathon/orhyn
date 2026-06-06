@@ -176,9 +176,9 @@ func (s *state) handleCharacterSelectRequest(clientPeerID, characterID int64) (M
 		return Message{Type: TypeCharacterSelectFailure, Reason: "That character is still disconnecting. Try again shortly."}, nil, errCharacterReserved
 	}
 
-	msg, prepare, err := s.prepareInitialZone(clientPeerID, characterID, s.cfg.DefaultZoneID)
+	msg, err := s.createInitialZoneRedirect(clientPeerID, characterID, s.cfg.DefaultZoneID)
 	if err == nil {
-		return msg, prepare, nil
+		return msg, nil, nil
 	}
 	if errors.Is(err, errUnknownDestinationZone) {
 		s.queueCharacterSelect(clientPeerID, characterID, s.cfg.DefaultZoneID)
@@ -187,18 +187,18 @@ func (s *state) handleCharacterSelectRequest(clientPeerID, characterID int64) (M
 	return Message{Type: TypeCharacterSelectFailure, Reason: err.Error()}, nil, err
 }
 
-func (s *state) prepareInitialZone(clientPeerID, characterID int64, zoneID string) (Message, *Message, error) {
+func (s *state) createInitialZoneRedirect(clientPeerID, characterID int64, zoneID string) (Message, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	dest, ok := s.zones[zoneID]
 	if !ok {
-		return Message{}, nil, errUnknownDestinationZone
+		return Message{}, errUnknownDestinationZone
 	}
 
 	token, err := generateToken()
 	if err != nil {
-		return Message{}, nil, err
+		return Message{}, err
 	}
 
 	s.pendingTransfers[token] = transfer{
@@ -210,28 +210,14 @@ func (s *state) prepareInitialZone(clientPeerID, characterID int64, zoneID strin
 		ClientPeerID: clientPeerID,
 	}
 
-	displayName := s.clientDisplayNames[clientPeerID]
-	if displayName == "" {
-		displayName = "Player"
-	}
-
-	prepare := Message{
-		Type:          TypePreparePlayer,
+	return Message{
+		Type:          TypeZoneRedirect,
+		ZoneID:        zoneID,
+		Address:       dest.Address,
+		Port:          dest.Port,
+		CharacterID:   characterID,
 		TransferToken: token,
-		PlayerState: PlayerState{
-			HP:            100,
-			MaxHP:         100,
-			Mana:          100,
-			MaxMana:       100,
-			Stamina:       100,
-			MaxStamina:    100,
-			Condition:     "living",
-			DisplayName:   displayName,
-			VisualModelID: placeholderModelName,
-			CharacterID:   characterID,
-		},
-	}
-	return Message{}, &prepare, nil
+	}, nil
 }
 
 func (s *state) handleZoneTransferRequest(originPeerID int64, msg Message) (*Message, int64, error) {

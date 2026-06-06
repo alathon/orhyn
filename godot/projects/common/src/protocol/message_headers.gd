@@ -4,3 +4,5 @@ extends RefCounted
 const MovementInputMsgHeader: int = 0xC7
 const MovementSnapshotMsgHeader: int = 0xC8
 const EntityLifecycleMsgHeader: int = 0xC9
+const ZoneLoginRequestMsgHeader: int = 0xCA
+const CharacterLoadedMsgHeader: int = 0xCB

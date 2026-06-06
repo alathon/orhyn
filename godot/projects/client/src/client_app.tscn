@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://projects/client/src/client_app.gd" id="1_client_app"]
+[ext_resource type="Script" path="res://projects/client/src/client_flow_state.gd" id="2_flow_state"]
+[ext_resource type="PackedScene" path="res://projects/client/src/screens/login_screen.tscn" id="3_login"]
+[ext_resource type="PackedScene" path="res://projects/client/src/screens/character_select_screen.tscn" id="4_character_select"]
+[ext_resource type="PackedScene" path="res://projects/client/src/screens/ingame_screen.tscn" id="5_ingame"]
+[ext_resource type="PackedScene" path="res://projects/client/src/screens/loading_screen.tscn" id="6_loading"]
+[ext_resource type="Script" path="res://projects/client/src/client_loading_coordinator.gd" id="7_loading_coordinator"]
+[ext_resource type="Script" path="res://projects/client/src/client_orchestrator_client.gd" id="8_orchestrator_client"]
+
+[node name="ClientApp" type="Node"]
+script = ExtResource("1_client_app")
+login_scene = ExtResource("3_login")
+character_select_scene = ExtResource("4_character_select")
+loading_scene = ExtResource("6_loading")
+ingame_scene = ExtResource("5_ingame")
+
+[node name="ClientFlowState" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("2_flow_state")
+
+[node name="ClientLoadingCoordinator" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("7_loading_coordinator")
+
+[node name="ClientOrchestratorClient" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("8_orchestrator_client")
+
+[node name="ScreenContainer" type="Node" parent="."]
+unique_name_in_owner = true

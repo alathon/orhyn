@@ -1,49 +1,165 @@
-[gd_scene format=3 uid="uid://dy3b070t14h02"]
+[gd_scene format=3]
 
-[ext_resource type="Terrain3DMaterial" uid="uid://dxjiio8qse3mb" path="res://data/new_terrain_3d_material.tres" id="1_iejnu"]
-[ext_resource type="Terrain3DAssets" uid="uid://cflggrxrtbfju" path="res://data/new_terrain_3d_assets.tres" id="2_vjmoc"]
-[ext_resource type="Script" uid="uid://cnq2s61glph30" path="res://projects/client/src/game_systems.gd" id="3_04vpm"]
-[ext_resource type="Script" uid="uid://dtmvbbgw50v4a" path="res://projects/client/src/api.gd" id="4_5g4dq"]
-[ext_resource type="Script" uid="uid://by42n0xut2t6e" path="res://projects/client/src/entity_spawner.gd" id="5_ix1bb"]
-[ext_resource type="PackedScene" uid="uid://hn8q3dj44yod" path="res://projects/client/src/player_entity.tscn" id="6_yii8c"]
-[ext_resource type="PackedScene" uid="uid://drt7o4vcdutmn" path="res://projects/client/src/remote_entity.tscn" id="7_7mj4b"]
+[ext_resource type="Script" path="res://projects/client/src/screens/login_screen.gd" id="1_login_screen"]
+[ext_resource type="Texture2D" path="res://projects/client/assets/ui/images/screens/orhyn_login_screen.png" id="2_background"]
+[ext_resource type="Texture2D" path="res://projects/client/assets/ui/images/screens/login_frame.png" id="3_frame"]
+[ext_resource type="FontFile" path="res://projects/client/assets/ui/fonts/Cinzel-SemiBold.ttf" id="4_heading_font"]
+[ext_resource type="FontFile" path="res://projects/client/assets/ui/fonts/Cinzel-Regular.ttf" id="5_body_font"]
 
-[sub_resource type="Environment" id="Environment_m7jmp"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.0923971, 0.0923971, 0.0923971, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.252028, 0.252028, 0.252027, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
-[node name="Zone" type="Node3D" unique_id=1238542963]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.290196, 0.172549, 0.521569, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.164706, 0.121569, 0.247059, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 2
 
-[node name="Terrain3D" type="Terrain3D" parent="." unique_id=327729889]
-data_directory = "res://data"
-material = ExtResource("1_iejnu")
-assets = ExtResource("2_vjmoc")
-collision_mode = 4
-collision_layer = 2
-displacement_sharpness = 0.5
-top_level = true
-metadata/_edit_lock_ = true
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.541176, 0.360784, 1, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.721569, 0.611765, 1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 2
 
-[node name="GameSystems" type="Node" parent="." unique_id=192668155]
+[node name="LoginScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_login_screen")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_background")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BuildLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 45.0
+offset_top = -52.0
+offset_right = 315.0
+offset_bottom = -18.0
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("5_body_font")
+theme_override_font_sizes/font_size = 22
+text = "build: local"
+
+[node name="Form" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -313.0
+offset_top = -122.0
+offset_right = 287.0
+offset_bottom = 256.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Center" type="CenterContainer" parent="Form"]
+layout_mode = 2
+
+[node name="Dimmer" type="ColorRect" parent="Form/Center"]
+custom_minimum_size = Vector2(500, 200)
+layout_mode = 2
+color = Color(0, 0, 0, 0.788235)
+
+[node name="Frame" type="TextureRect" parent="Form/Center"]
+custom_minimum_size = Vector2(600, 300)
+layout_mode = 2
+texture = ExtResource("3_frame")
+expand_mode = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="Form/Center"]
+layout_mode = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 40
+
+[node name="Content" type="VBoxContainer" parent="Form/Center/MarginContainer"]
+custom_minimum_size = Vector2(450, 140)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Username" type="VBoxContainer" parent="Form/Center/MarginContainer/Content"]
+layout_mode = 2
+
+[node name="UsernameLabel" type="Label" parent="Form/Center/MarginContainer/Content/Username"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.637843, 0.637843, 0.637843, 1)
+theme_override_fonts/font = ExtResource("4_heading_font")
+text = "USERNAME"
+
+[node name="UsernameInput" type="LineEdit" parent="Form/Center/MarginContainer/Content/Username"]
 unique_name_in_owner = true
-script = ExtResource("3_04vpm")
+modulate = Color(0.74558, 0.74558, 0.74558, 1)
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_body_font")
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+placeholder_text = "Enter your username"
+max_length = 32
 
-[node name="API" type="Node" parent="GameSystems" unique_id=1462841541]
+[node name="CenterContainer" type="CenterContainer" parent="Form/Center/MarginContainer/Content"]
+layout_mode = 2
+
+[node name="PlayButton" type="Button" parent="Form/Center/MarginContainer/Content/CenterContainer"]
 unique_name_in_owner = true
-script = ExtResource("4_5g4dq")
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_heading_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+text = "Play"
 
-[node name="EntitySpawner" type="Node" parent="GameSystems" unique_id=145268821]
-script = ExtResource("5_ix1bb")
-player_entity_scene = ExtResource("6_yii8c")
-remote_entity_scene = ExtResource("7_7mj4b")
-
-[node name="Entities" type="Node" parent="." unique_id=2012631697]
+[node name="StatusLabel" type="Label" parent="Form"]
 unique_name_in_owner = true
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1496765935]
-environment = SubResource("Environment_m7jmp")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1442855236]
-transform = Transform3D(1, 0, 0, 0, 0.29914066, 0.954209, 0, -0.954209, 0.29914066, 0, 84.93894, 0)
-
-[node name="BootstrapCamera3D" type="Camera3D" parent="." unique_id=1335517837]
-transform = Transform3D(0.70710677, -0.40824828, 0.57735026, 0, 0.81649655, 0.57735026, -0.70710677, -0.40824828, 0.57735026, -45, 18, -45)
-current = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94902, 0.913725, 1, 1)
+theme_override_colors/font_shadow_color = Color(0.607843, 0.360784, 1, 0.4)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_constants/shadow_outline_size = 2
+horizontal_alignment = 1

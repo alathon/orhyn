@@ -5,12 +5,13 @@ signal entity_spawned(entity: BaseEntity)
 signal entity_despawned(entity_id: int)
 
 @onready var api: API = %API
-@onready var entities_container: Node = %Entities
 
+@export var zone_container: ClientZoneContainer
 @export var player_entity_scene: PackedScene
 @export var remote_entity_scene: PackedScene
 
-var _local_player_id = -1
+var entities_container: Node = null
+var _local_player_id: int = -1
 var _local_player: Player
 var entities: Dictionary[int, BaseEntity] = {}
 var local_entity_id: int:
@@ -19,6 +20,13 @@ var local_entity_id: int:
 
 func _ready() -> void:
 	api.entity_lifecycle_received.connect(_on_entity_lifecycle_received)
+	if zone_container == null:
+		push_warning("ClientEntitySpawner has no zone_container assigned.")
+		return
+
+	zone_container.zone_loaded.connect(_on_zone_loaded)
+	if zone_container.loaded_entities != null:
+		_set_entities_container(zone_container.loaded_entities)
 
 func get_local_player() -> Player:
 	return _local_player
@@ -40,18 +48,22 @@ func _on_entity_lifecycle_received(lifecycle: EntityLifecycleMsg) -> void:
 		spawn_entity(spawn)
 
 func spawn_entity(spawn: EntityLifecycleMsg.SpawnRecord) -> BaseEntity:
+	if entities_container == null:
+		push_warning("Cannot spawn entity before a zone Entities node is loaded.")
+		return null
+
 	if spawn.entity_kind != EntityLifecycleMsg.EntityKind.Player:
 		push_warning("Ignoring unknown entity kind in spawn: %d" % spawn.entity_kind)
 		return null
 
-	var entity_id = spawn.entity_id
+	var entity_id: int = spawn.entity_id
 	if entity_id == _local_player_id:
 		return _spawn_local_player(spawn)
 
 	return _spawn_remote_entity(spawn)
 
 func despawn_entity(entity_id: int) -> void:
-	var player = entities.get(entity_id) as Node
+	var player: Node = entities.get(entity_id) as Node
 	if player == null:
 		return
 
@@ -78,7 +90,7 @@ func _spawn_local_player(spawn: EntityLifecycleMsg.SpawnRecord) -> Player:
 		_apply_spawn_transform(_local_player, spawn)
 		return _local_player
 
-	var stale_remote = entities.get(_local_player_id) as Node
+	var stale_remote: Node = entities.get(_local_player_id) as Node
 	if stale_remote != null:
 		entities.erase(_local_player_id)
 		stale_remote.queue_free()
@@ -98,8 +110,8 @@ func _spawn_local_player(spawn: EntityLifecycleMsg.SpawnRecord) -> Player:
 	return player
 
 func _spawn_remote_entity(spawn: EntityLifecycleMsg.SpawnRecord) -> RemoteEntity:
-	var entity_id = spawn.entity_id
-	var existing = entities.get(entity_id) as RemoteEntity
+	var entity_id: int = spawn.entity_id
+	var existing: RemoteEntity = entities.get(entity_id) as RemoteEntity
 	if existing != null:
 		_apply_spawn_transform(existing, spawn)
 		return existing
@@ -117,10 +129,25 @@ func _spawn_remote_entity(spawn: EntityLifecycleMsg.SpawnRecord) -> RemoteEntity
 	return remote
 
 func _apply_spawn_transform(entity: BaseEntity, spawn: EntityLifecycleMsg.SpawnRecord) -> void:
-	var position = spawn.position
-	var rotation = spawn.rotation
+	var position: Vector3 = spawn.position
+	var rotation: Quaternion = spawn.rotation
 	var body: Node3D = entity.get_body()
 	body.global_transform = Transform3D(Basis(rotation), position)
 
 	if entity is RemoteEntity:
 		(entity as RemoteEntity).apply_remote_transform(position, rotation)
+
+func _on_zone_loaded(_zone_id: String, _zone: Node, entities_node: Node) -> void:
+	_reset_spawned_entities()
+	_set_entities_container(entities_node)
+
+func _set_entities_container(entities_node: Node) -> void:
+	entities_container = entities_node
+
+func _reset_spawned_entities() -> void:
+	for entity: BaseEntity in entities.values():
+		if entity != null:
+			entity.queue_free()
+	entities.clear()
+	_local_player = null
+	_local_player_id = -1

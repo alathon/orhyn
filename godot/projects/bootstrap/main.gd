@@ -4,7 +4,7 @@ extends Node
 const RUNTIME_CLIENT := "client"
 const RUNTIME_GAME_SERVER := "game-server"
 
-const CLIENT_SCENE_PATH := "res://projects/client/src/screens/login_screen.tscn"
+const CLIENT_SCENE_PATH := "res://projects/client/src/client_app.tscn"
 const GAME_SERVER_SCENE_PATH := "res://projects/game-server/src/main.tscn"
 
 

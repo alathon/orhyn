@@ -1,0 +1,177 @@
+[gd_resource type="Theme" format=3 uid="uid://ctv8kh11tsgof"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_equipment_slot_normal"]
+bg_color = Color(0.0392157, 0.0470588, 0.109804, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.384314, 0.423529, 0.662745, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_equipment_slot_hover"]
+bg_color = Color(0.0588235, 0.0705882, 0.156863, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.62, 0.68, 0.88, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_equipment_slot_pressed"]
+bg_color = Color(0.0313726, 0.027451, 0.0862745, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.74, 0.8, 1, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_normal"]
+bg_color = Color(0.172549, 0.105882, 0.760784, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.0705882, 0.0156863, 0.568627, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.223529, 0.14902, 0.85098, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.62, 0.68, 0.88, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_pressed"]
+bg_color = Color(0.109804, 0.0470588, 0.611765, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.74, 0.8, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_normal"]
+bg_color = Color(0.109804, 0.0470588, 0.611765, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.62, 0.68, 0.88, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_hover"]
+bg_color = Color(0.223529, 0.14902, 0.85098, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.62, 0.68, 0.88, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_pressed"]
+bg_color = Color(0.0705882, 0.0156863, 0.568627, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.74, 0.8, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_window_panel"]
+bg_color = Color(0.0705882, 0.0156863, 0.568627, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.62, 0.68, 0.88, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_none"]
+
+[resource]
+EquipmentSlotButton/base_type = &"Button"
+EquipmentSlotButton/colors/font_color = Color(1, 1, 1, 1)
+EquipmentSlotButton/colors/font_focus_color = Color(1, 1, 1, 1)
+EquipmentSlotButton/colors/font_hover_color = Color(1, 1, 1, 1)
+EquipmentSlotButton/colors/font_pressed_color = Color(1, 1, 1, 1)
+EquipmentSlotButton/styles/disabled = SubResource("StyleBoxFlat_equipment_slot_normal")
+EquipmentSlotButton/styles/focus = SubResource("StyleBoxFlat_equipment_slot_hover")
+EquipmentSlotButton/styles/hover = SubResource("StyleBoxFlat_equipment_slot_hover")
+EquipmentSlotButton/styles/normal = SubResource("StyleBoxFlat_equipment_slot_normal")
+EquipmentSlotButton/styles/pressed = SubResource("StyleBoxFlat_equipment_slot_pressed")
+GameWindowAccentText/base_type = &"Label"
+GameWindowAccentText/colors/font_color = Color(1, 0.831373, 0.321569, 1)
+GameWindowAccentText/font_sizes/font_size = 16
+GameWindowButton/base_type = &"Button"
+GameWindowButton/colors/font_color = Color(1, 1, 1, 1)
+GameWindowButton/colors/font_focus_color = Color(1, 1, 1, 1)
+GameWindowButton/colors/font_hover_color = Color(1, 1, 1, 1)
+GameWindowButton/colors/font_pressed_color = Color(1, 1, 1, 1)
+GameWindowButton/styles/disabled = SubResource("StyleBoxFlat_button_normal")
+GameWindowButton/styles/focus = SubResource("StyleBoxFlat_button_hover")
+GameWindowButton/styles/hover = SubResource("StyleBoxFlat_button_hover")
+GameWindowButton/styles/normal = SubResource("StyleBoxFlat_button_normal")
+GameWindowButton/styles/pressed = SubResource("StyleBoxFlat_button_pressed")
+GameWindowCloseButton/base_type = &"Button"
+GameWindowCloseButton/colors/font_color = Color(1, 1, 1, 1)
+GameWindowCloseButton/colors/font_focus_color = Color(1, 1, 1, 1)
+GameWindowCloseButton/colors/font_hover_color = Color(1, 1, 1, 1)
+GameWindowCloseButton/colors/font_pressed_color = Color(1, 1, 1, 1)
+GameWindowCloseButton/styles/disabled = SubResource("StyleBoxFlat_close_normal")
+GameWindowCloseButton/styles/focus = SubResource("StyleBoxFlat_close_hover")
+GameWindowCloseButton/styles/hover = SubResource("StyleBoxFlat_close_hover")
+GameWindowCloseButton/styles/normal = SubResource("StyleBoxFlat_close_normal")
+GameWindowCloseButton/styles/pressed = SubResource("StyleBoxFlat_close_pressed")
+GameWindowMutedText/base_type = &"Label"
+GameWindowMutedText/colors/font_color = Color(1, 0.831373, 0.321569, 1)
+GameWindowMutedText/font_sizes/font_size = 16
+GameWindowPanel/base_type = &"PanelContainer"
+GameWindowPanel/styles/panel = SubResource("StyleBoxFlat_window_panel")
+GameWindowScroll/base_type = &"ScrollContainer"
+GameWindowScroll/styles/focus = SubResource("StyleBoxEmpty_none")
+GameWindowText/base_type = &"Label"
+GameWindowText/colors/font_color = Color(1, 1, 1, 1)
+GameWindowText/font_sizes/font_size = 16
+GameWindowTitle/base_type = &"Label"
+GameWindowTitle/colors/font_color = Color(1, 1, 1, 1)
+GameWindowTitle/font_sizes/font_size = 18

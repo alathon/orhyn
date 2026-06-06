@@ -1,49 +1,45 @@
-[gd_scene format=3 uid="uid://gxc0uct42x"]
+[gd_scene format=3]
 
-[ext_resource type="Terrain3DMaterial" uid="uid://dxjiio8qse3mb" path="res://data/new_terrain_3d_material.tres" id="1_8nk2g"]
-[ext_resource type="Terrain3DAssets" uid="uid://cflggrxrtbfju" path="res://data/new_terrain_3d_assets.tres" id="1_f2dhx"]
-[ext_resource type="Script" uid="uid://cnq2s61glph30" path="res://projects/client/src/game_systems.gd" id="4_1dmei"]
-[ext_resource type="Script" uid="uid://dtmvbbgw50v4a" path="res://projects/client/src/api.gd" id="5_4drak"]
-[ext_resource type="Script" uid="uid://by42n0xut2t6e" path="res://projects/client/src/entity_spawner.gd" id="6_v2s3j"]
-[ext_resource type="PackedScene" uid="uid://hn8q3dj44yod" path="res://projects/client/src/player_entity.tscn" id="7_1dmei"]
-[ext_resource type="PackedScene" uid="uid://drt7o4vcdutmn" path="res://projects/client/src/remote_entity.tscn" id="8_4drak"]
+[ext_resource type="Script" path="res://projects/client/src/screens/ingame_screen.gd" id="1_ingame_screen"]
+[ext_resource type="Script" uid="uid://cnq2s61glph30" path="res://projects/client/src/game_systems.gd" id="2_game_systems"]
+[ext_resource type="Script" uid="uid://dtmvbbgw50v4a" path="res://projects/client/src/api.gd" id="3_api"]
+[ext_resource type="Script" uid="uid://by42n0xut2t6e" path="res://projects/client/src/entity_spawner.gd" id="4_entity_spawner"]
+[ext_resource type="PackedScene" uid="uid://hn8q3dj44yod" path="res://projects/client/src/player_entity.tscn" id="5_player_entity"]
+[ext_resource type="PackedScene" uid="uid://drt7o4vcdutmn" path="res://projects/client/src/remote_entity.tscn" id="6_remote_entity"]
+[ext_resource type="Script" path="res://projects/client/src/client_zone_container.gd" id="7_zone_container"]
+[ext_resource type="Script" path="res://projects/client/src/character_load_controller.gd" id="8_character_load_controller"]
 
-[sub_resource type="Environment" id="Environment_m7jmp"]
+[node name="IngameScreen" type="Node3D" node_paths=PackedStringArray("api", "zone_container", "character_load_controller")]
+script = ExtResource("1_ingame_screen")
+api = NodePath("GameSystems/API")
+zone_container = NodePath("ZoneContainer")
+character_load_controller = NodePath("GameSystems/CharacterLoadController")
 
-[node name="Zone" type="Node3D" unique_id=1238542963]
-
-[node name="Terrain3D" type="Terrain3D" parent="." unique_id=327729889]
-data_directory = "res://data"
-material = ExtResource("1_8nk2g")
-assets = ExtResource("1_f2dhx")
-collision_mode = 4
-collision_layer = 2
-displacement_sharpness = 0.5
-top_level = true
-metadata/_edit_lock_ = true
-
-[node name="GameSystems" type="Node" parent="." unique_id=192668155]
+[node name="GameSystems" type="Node" parent="."]
 unique_name_in_owner = true
-script = ExtResource("4_1dmei")
+script = ExtResource("2_game_systems")
 
-[node name="API" type="Node" parent="GameSystems" unique_id=1462841541]
+[node name="API" type="Node" parent="GameSystems"]
 unique_name_in_owner = true
-script = ExtResource("5_4drak")
+script = ExtResource("3_api")
+auto_connect = false
 
-[node name="EntitySpawner" type="Node" parent="GameSystems" unique_id=145268821]
-script = ExtResource("6_v2s3j")
-player_entity_scene = ExtResource("7_1dmei")
-remote_entity_scene = ExtResource("8_4drak")
-
-[node name="Entities" type="Node" parent="." unique_id=2012631697]
+[node name="EntitySpawner" type="Node" parent="GameSystems" node_paths=PackedStringArray("zone_container")]
 unique_name_in_owner = true
+script = ExtResource("4_entity_spawner")
+player_entity_scene = ExtResource("5_player_entity")
+remote_entity_scene = ExtResource("6_remote_entity")
+zone_container = NodePath("../../ZoneContainer")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1496765935]
-environment = SubResource("Environment_m7jmp")
+[node name="CharacterLoadController" type="Node" parent="GameSystems" node_paths=PackedStringArray("api")]
+unique_name_in_owner = true
+script = ExtResource("8_character_load_controller")
+api = NodePath("../API")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1442855236]
-transform = Transform3D(1, 0, 0, 0, 0.29914066, 0.954209, 0, -0.954209, 0.29914066, 0, 84.93894, 0)
+[node name="ZoneContainer" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("7_zone_container")
 
-[node name="BootstrapCamera3D" type="Camera3D" parent="." unique_id=1335517837]
+[node name="BootstrapCamera3D" type="Camera3D" parent="."]
 transform = Transform3D(0.70710677, -0.40824828, 0.57735026, 0, 0.81649655, 0.57735026, -0.70710677, -0.40824828, 0.57735026, -45, 18, -45)
 current = true

@@ -45,7 +45,7 @@ func testState() (*state, func(time.Duration)) {
 	return s, advance
 }
 
-func TestLoginPrepareAckRedirectsClient(t *testing.T) {
+func TestLoginCharacterSelectRedirectsClient(t *testing.T) {
 	s, _ := testState()
 	zonePeer := s.addGamePeer(&fakeSocket{})
 	clientPeer := s.addClientPeer(&fakeSocket{})
@@ -66,33 +66,18 @@ func TestLoginPrepareAckRedirectsClient(t *testing.T) {
 		t.Fatalf("unexpected login response: %#v", login)
 	}
 
-	_, prepare, err := s.handleCharacterSelectRequest(clientPeer.id, placeholderCharacterID)
+	redirect, prepare, err := s.handleCharacterSelectRequest(clientPeer.id, placeholderCharacterID)
 	if err != nil {
 		t.Fatalf("character select failed: %v", err)
 	}
-	if prepare == nil {
-		t.Fatal("expected prepare_player message")
+	if prepare != nil {
+		t.Fatalf("did not expect prepare_player message: %#v", prepare)
 	}
-	if prepare.TransferToken == "" {
-		t.Fatal("expected transfer token")
-	}
-	if prepare.PlayerState.DisplayName != "Martin" {
-		t.Fatalf("expected player display name to carry into state, got %q", prepare.PlayerState.DisplayName)
-	}
-
-	redirect, targetPeerID, err := s.handlePreparePlayerAck(zonePeer.id, Message{
-		Type:          TypePreparePlayerAck,
-		TransferToken: prepare.TransferToken,
-		Accepted:      true,
-	})
-	if err != nil {
-		t.Fatalf("prepare ack failed: %v", err)
-	}
-	if targetPeerID != clientPeer.id {
-		t.Fatalf("expected redirect target client %d, got %d", clientPeer.id, targetPeerID)
-	}
-	if redirect == nil || redirect.Type != TypeZoneRedirect {
+	if redirect.Type != TypeZoneRedirect {
 		t.Fatalf("expected zone redirect, got %#v", redirect)
+	}
+	if redirect.TransferToken == "" {
+		t.Fatal("expected transfer token")
 	}
 	if redirect.Address != "127.0.0.1" || redirect.Port != 4242 {
 		t.Fatalf("unexpected redirect destination: %#v", redirect)
