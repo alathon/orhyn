@@ -3,9 +3,10 @@ extends Node3D
 const CLICK_DRAG_THRESHOLD_PX := 6.0
 
 @export_range(0.0, 1.0) var mouse_sensitivity = 0.01
-@export var tilt_limit = deg_to_rad(75)
-@export var offset: Vector3 = Vector3(0, 2.0, 0)
-@export_range(-75.0, 75.0, 0.1, "degrees") var camera_default_pitch_degrees := -32.0
+@export var offset: Vector3 = Vector3(0, 0.7, 0)
+@export_range(-75.0, 0.0, 0.1, "degrees") var camera_default_pitch_degrees := -32.0
+@export_range(-89.0, 0.0, 0.1, "degrees") var camera_min_pitch_degrees := -65.0
+@export_range(-45.0, 30.0, 0.1, "degrees") var camera_max_pitch_degrees := 20.0
 
 @export var body: PhysicsBody
 @export var model: Node3D
@@ -15,7 +16,7 @@ const CLICK_DRAG_THRESHOLD_PX := 6.0
 ## Default distance to set the camera from the player.
 @export var camera_default_distance := 7.0
 ## Maximum distance the camera can zoom out to.
-@export var camera_distance_max := 14
+@export var camera_distance_max := 28.0
 ## Mininum distance the camera can zoom in to.
 @export var camera_distance_min := 1.0
 ## How far the camera will move per zoom input.
@@ -23,7 +24,7 @@ const CLICK_DRAG_THRESHOLD_PX := 6.0
 ## How quickly the camera zoom interpolates.
 @export var camera_lerp_speed := 5.0
 # Variable for handling smooth zooming.
-var _spring_arm_target_length := camera_default_distance
+var _spring_arm_target_length: float = camera_default_distance
 
 @onready var _spring_arm: SpringArm3D = $SpringArm3D
 
@@ -40,22 +41,20 @@ var _right_dragging: bool = false
 
 
 func _ready() -> void:
-	var start_transform := global_transform
+	var start_transform: Transform3D = global_transform
 	top_level = true
 	global_transform = start_transform
 
-	rotation.x = clampf(deg_to_rad(camera_default_pitch_degrees), -tilt_limit, tilt_limit)
+	rotation.x = _clamp_pitch(deg_to_rad(camera_default_pitch_degrees))
 	_spring_arm_target_length = clampf(camera_default_distance, camera_distance_min, camera_distance_max)
 	_spring_arm.spring_length = _spring_arm_target_length
-	_spring_arm.add_excluded_object(body)
+
+	if body != null:
+		_spring_arm.add_excluded_object(body.get_rid())
 	
 	if model != null:
 		rotation.y = model.global_rotation.y
-	if model != null:
-		var pos: Vector3 = model.global_position
-		global_position.x = pos.x + offset.x
-		global_position.y = pos.y + offset.y
-		global_position.z = pos.z + offset.z
+		_update_target_position()
 
 func _input(event: InputEvent) -> void:
 	if not event is InputEventMouseMotion:
@@ -86,10 +85,7 @@ func _process(delta: float):
 	if model != null:
 		# Follow visual_position (smoothed) when available, so the camera
 		# isn't affected by tick-rate jitter from clock stretching.
-		var pos: Vector3 = model.global_position
-		global_position.x = pos.x + offset.x
-		global_position.y = pos.y + offset.y
-		global_position.z = pos.z + offset.z
+		_update_target_position()
 
 	# Handle smooth camera zooming.
 	if _spring_arm_target_length != _spring_arm.spring_length:
@@ -163,5 +159,17 @@ func _capture_mouse_for_drag(restore_position: Vector2) -> void:
 func _rotate_from_mouse_motion(relative: Vector2) -> void:
 	rotation.x -= relative.y * mouse_sensitivity
 	# Prevent camera from rotating too far up/down
-	rotation.x = clampf(rotation.x, -tilt_limit, tilt_limit)
+	rotation.x = _clamp_pitch(rotation.x)
 	rotation.y += -relative.x * mouse_sensitivity
+
+func _update_target_position() -> void:
+	global_position = model.global_position + offset
+
+func _clamp_pitch(pitch: float) -> float:
+	var min_pitch: float = deg_to_rad(camera_min_pitch_degrees)
+	var max_pitch: float = deg_to_rad(camera_max_pitch_degrees)
+	if min_pitch > max_pitch:
+		var swap_pitch: float = min_pitch
+		min_pitch = max_pitch
+		max_pitch = swap_pitch
+	return clampf(pitch, min_pitch, max_pitch)
