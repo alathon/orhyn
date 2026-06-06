@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://projects/client/src/screens/loading_screen.tscn" id="6_loading"]
 [ext_resource type="Script" path="res://projects/client/src/client_loading_coordinator.gd" id="7_loading_coordinator"]
 [ext_resource type="Script" path="res://projects/client/src/client_orchestrator_client.gd" id="8_orchestrator_client"]
+[ext_resource type="Script" path="res://projects/client/src/zone_entry_flow.gd" id="9_zone_entry_flow"]
 
 [node name="ClientApp" type="Node"]
 script = ExtResource("1_client_app")
@@ -27,6 +28,11 @@ script = ExtResource("7_loading_coordinator")
 [node name="ClientOrchestratorClient" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("8_orchestrator_client")
+
+[node name="ZoneEntryFlow" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("9_zone_entry_flow")
+ingame_scene = ExtResource("5_ingame")
 
 [node name="ScreenContainer" type="Node" parent="."]
 unique_name_in_owner = true
