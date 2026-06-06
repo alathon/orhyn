@@ -2,11 +2,11 @@
 
 [ext_resource type="Terrain3DMaterial" uid="uid://dxjiio8qse3mb" path="res://data/new_terrain_3d_material.tres" id="1_8nk2g"]
 [ext_resource type="Terrain3DAssets" uid="uid://cflggrxrtbfju" path="res://data/new_terrain_3d_assets.tres" id="1_f2dhx"]
-[ext_resource type="Script" uid="uid://cnq2s61glph30" path="res://scripts/client/game_systems.gd" id="4_1dmei"]
-[ext_resource type="Script" uid="uid://dtmvbbgw50v4a" path="res://scripts/client/api.gd" id="5_4drak"]
-[ext_resource type="Script" uid="uid://by42n0xut2t6e" path="res://scripts/client/entity_spawner.gd" id="6_v2s3j"]
-[ext_resource type="PackedScene" uid="uid://hn8q3dj44yod" path="res://scripts/client/player_entity.tscn" id="7_1dmei"]
-[ext_resource type="PackedScene" uid="uid://drt7o4vcdutmn" path="res://scripts/client/remote_entity.tscn" id="8_4drak"]
+[ext_resource type="Script" uid="uid://cnq2s61glph30" path="res://projects/client/game_systems.gd" id="4_1dmei"]
+[ext_resource type="Script" uid="uid://dtmvbbgw50v4a" path="res://projects/client/api.gd" id="5_4drak"]
+[ext_resource type="Script" uid="uid://by42n0xut2t6e" path="res://projects/client/entity_spawner.gd" id="6_v2s3j"]
+[ext_resource type="PackedScene" uid="uid://hn8q3dj44yod" path="res://projects/client/player_entity.tscn" id="7_1dmei"]
+[ext_resource type="PackedScene" uid="uid://drt7o4vcdutmn" path="res://projects/client/remote_entity.tscn" id="8_4drak"]
 
 [sub_resource type="Environment" id="Environment_m7jmp"]
 

@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://drt7o4vcdutmn"]
 
-[ext_resource type="Script" uid="uid://c7hneo1fqcp5r" path="res://scripts/client/remote_entity.gd" id="1_y7ke5"]
-[ext_resource type="Script" uid="uid://ckn385bdji0od" path="res://scripts/client/remote_body.gd" id="2_dajna"]
-[ext_resource type="Script" uid="uid://ceueav1yv38x2" path="res://scripts/client/remote_interpolation_buffer.gd" id="3_un4g1"]
+[ext_resource type="Script" uid="uid://c7hneo1fqcp5r" path="res://projects/client/remote_entity.gd" id="1_y7ke5"]
+[ext_resource type="Script" uid="uid://ckn385bdji0od" path="res://projects/client/remote_body.gd" id="2_dajna"]
+[ext_resource type="Script" uid="uid://ceueav1yv38x2" path="res://projects/client/remote_interpolation_buffer.gd" id="3_un4g1"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_l2lw7"]
 

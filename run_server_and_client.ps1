@@ -12,39 +12,40 @@ $RightX = $Screen.Right - $EstimatedWindowWidth - $InsetX
 $TopY = $Screen.Top + $InsetY
 $BottomY = $Screen.Bottom - $EstimatedWindowHeight - $InsetY
 
-function Start-GodotWindow {
-	param(
-		[string] $ScenePath,
-		[int] $X,
-		[int] $Y
-	)
+function Start-GodotWindow
+{
+    param(
+        [string] $ScenePath,
+        [int] $X,
+        [int] $Y
+    )
 
-	Start-Process godot -WorkingDirectory $ProjectPath -ArgumentList @(
-		"--path", ".",
-		"--windowed",
-		"--position", "$X,$Y",
-		"--scene", $ScenePath
-	)
+    Start-Process godot -WorkingDirectory $ProjectPath -ArgumentList @(
+        "--path", ".",
+        "--windowed",
+        "--position", "$X,$Y",
+        "--scene", $ScenePath
+    )
 }
 
 Start-GodotWindow `
-	-ScenePath "res://scripts/server/server_scene.tscn" `
-	-X $LeftX `
-	-Y $TopY
+    -ScenePath "res://projects/server/server_scene.tscn" `
+    -X $LeftX `
+    -Y $TopY
 
 Start-Sleep -Milliseconds 500
 
 Start-GodotWindow `
-	-ScenePath "res://scripts/client/client_scene.tscn" `
-	-X $RightX `
-	-Y $TopY
+    -ScenePath "res://projects/client/client_scene.tscn" `
+    -X $RightX `
+    -Y $TopY
 
 Start-GodotWindow `
-	-ScenePath "res://scripts/client/client_scene.tscn" `
-	-X $LeftX `
-	-Y $BottomY
+    -ScenePath "res://projects/client/client_scene.tscn" `
+    -X $LeftX `
+    -Y $BottomY
 
 Start-GodotWindow `
-	-ScenePath "res://scripts/client/client_scene.tscn" `
-	-X $RightX `
-	-Y $BottomY
+    -ScenePath "res://projects/client/client_scene.tscn" `
+    -X $RightX `
+    -Y $BottomY
