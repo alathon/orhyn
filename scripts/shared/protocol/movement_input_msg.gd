@@ -4,28 +4,26 @@ extends RefCounted
 const MAGIC: int = MessageHeaders.MovementInputMsgHeader
 const HEADER_SIZE := 2
 const FRAME_SIZE := 9
+const MAX_PREVIOUS_INPUTS := 3
 
-const FLAG_HAS_PREVIOUS := 1
-const FLAG_HAS_CURRENT := 2
 const FRAME_FLAG_JUMP_PRESSED := 1
 const FRAME_FLAG_JUMP_DOWN := 2
 const AXIS_SCALE := 32767.0
 
-static func encode(current_input: Variant, previous_input: Variant = null) -> PackedByteArray:
-	var packet_flags = FLAG_HAS_CURRENT
-	if previous_input != null:
-		packet_flags |= FLAG_HAS_PREVIOUS
+static func encode(current_input: Variant, previous_inputs: Variant = []) -> PackedByteArray:
+	var previous_frames: Array = _normalize_previous_inputs(previous_inputs)
+	var previous_count: int = mini(previous_frames.size(), MAX_PREVIOUS_INPUTS)
 
-	var frame_count = 1 + (1 if previous_input != null else 0)
+	var frame_count = 1 + previous_count
 	var bytes = PackedByteArray()
 	bytes.resize(HEADER_SIZE + frame_count * FRAME_SIZE)
 
 	var offset = 0
 	offset = ProtocolUtils.write_u8(bytes, offset, MAGIC)
-	offset = ProtocolUtils.write_u8(bytes, offset, packet_flags)
+	offset = ProtocolUtils.write_u8(bytes, offset, previous_count)
 
-	if previous_input != null:
-		offset = _write_frame(bytes, offset, previous_input)
+	for i in previous_count:
+		offset = _write_frame(bytes, offset, previous_frames[i])
 	offset = _write_frame(bytes, offset, current_input)
 
 	return bytes
@@ -41,33 +39,38 @@ static func decode(bytes: PackedByteArray) -> MovementInputMsg:
 	if magic != MAGIC:
 		return msg
 
-	var packet_flags = ProtocolUtils.read_u8(bytes, offset)
+	var previous_count = ProtocolUtils.read_u8(bytes, offset)
 	offset += 1
 
-	var expected_size = HEADER_SIZE
-	if bool(packet_flags & FLAG_HAS_PREVIOUS):
-		expected_size += FRAME_SIZE
-	if bool(packet_flags & FLAG_HAS_CURRENT):
-		expected_size += FRAME_SIZE
-
-	if expected_size == HEADER_SIZE or bytes.size() < expected_size:
+	if previous_count > MAX_PREVIOUS_INPUTS:
 		return MovementInputMsg.new()
 
-	if bool(packet_flags & FLAG_HAS_PREVIOUS):
+	var expected_size = HEADER_SIZE + (previous_count + 1) * FRAME_SIZE
+	if bytes.size() < expected_size:
+		return MovementInputMsg.new()
+
+	for i in previous_count:
 		msg.inputs.append(_read_frame(bytes, offset))
 		offset += FRAME_SIZE
-	if bool(packet_flags & FLAG_HAS_CURRENT):
-		msg.inputs.append(_read_frame(bytes, offset))
+
+	msg.inputs.append(_read_frame(bytes, offset))
 
 	return msg
 
-static func encode_packet(current_input: Variant, previous_input: Variant = null) -> PackedByteArray:
-	return encode(current_input, previous_input)
+static func encode_packet(current_input: Variant, previous_inputs: Variant = []) -> PackedByteArray:
+	return encode(current_input, previous_inputs)
 
 static func decode_packet(bytes: PackedByteArray) -> MovementInputMsg:
 	return decode(bytes)
 
 var inputs: Array[MovementInputFrame] = []
+
+static func _normalize_previous_inputs(previous_inputs: Variant) -> Array:
+	if previous_inputs == null:
+		return []
+	if previous_inputs is Array:
+		return previous_inputs
+	return [previous_inputs]
 
 static func _write_frame(bytes: PackedByteArray, offset: int, input: Variant) -> int:
 	offset = ProtocolUtils.write_u32(bytes, offset, ProtocolUtils.get_int(input, "seq", 0))

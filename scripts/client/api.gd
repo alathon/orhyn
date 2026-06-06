@@ -42,7 +42,7 @@ func connect_to_server(host := DEFAULT_SERVER_HOST, port := DEFAULT_SERVER_PORT)
 
 	return OK
 
-func send_player_input(input: MovementInputFrame, previous_frame: Variant = null) -> Error:
+func send_player_input(input: MovementInputFrame, previous_inputs: Array = []) -> Error:
 	var err = connect_to_server()
 	if err != OK:
 		return err
@@ -51,7 +51,7 @@ func send_player_input(input: MovementInputFrame, previous_frame: Variant = null
 	if _server_peer.get_state() != ENetPacketPeer.STATE_CONNECTED:
 		return ERR_BUSY
 
-	var bytes = MovementInputMsg.encode(input, previous_frame)
+	var bytes = MovementInputMsg.encode(input, previous_inputs)
 	return _server_peer.send(CHANNEL_MOVEMENT, bytes, ENetPacketPeer.FLAG_UNSEQUENCED)
 
 func disconnect_from_server() -> void:

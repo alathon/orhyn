@@ -24,11 +24,15 @@ func record_predicted_state() -> void:
 	_prediction_frame.write_predicted_state(body)
 	_prediction_frame = null
 
-func get_previous_input_for_resend() -> Variant:
-	var previous_frame: Variant = _prediction_buffer.get_previous_frame(current_input.seq)
-	if previous_frame == null or not previous_frame.valid or previous_frame.seq < 0:
-		return null
-	return previous_frame
+func get_previous_inputs_for_resend(max_count: int = 3) -> Array[PredictionRingBuffer.Frame]:
+	var frames: Array[PredictionRingBuffer.Frame] = []
+	var count: int = maxi(max_count, 0)
+	for offset in range(count, 0, -1):
+		var frame: PredictionRingBuffer.Frame = _prediction_buffer.get_frame(current_input.seq - offset)
+		if frame == null or not frame.valid or frame.seq < 0:
+			continue
+		frames.append(frame)
+	return frames
 
 func get_predicted_position(seq: int) -> Variant:
 	return _prediction_buffer.get_predicted_position(seq)

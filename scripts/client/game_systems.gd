@@ -21,7 +21,7 @@ func _on_tick(_n: int, delta: float) -> void:
 	player_input.record_predicted_state()
 	api.send_player_input(
 		player_input.current_input,
-		player_input.get_previous_input_for_resend()
+		player_input.get_previous_inputs_for_resend()
 	)
 
 func _on_movement_snapshot_received(msg: MovementSnapshotMsg) -> void:
