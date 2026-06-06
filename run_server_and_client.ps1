@@ -51,16 +51,16 @@ Start-GodotWindow `
 Start-Sleep -Milliseconds 500
 
 Start-GodotWindow `
-    -ScenePath "res://projects/client/src/screens/ingame_screen.tscn" `
+    -ScenePath "res://projects/client/src/client_app.tscn" `
     -X $RightX `
     -Y $TopY
 
 Start-GodotWindow `
-    -ScenePath "res://projects/client/src/screens/ingame_screen.tscn" `
+    -ScenePath "res://projects/client/src/client_app.tscn" `
     -X $LeftX `
     -Y $BottomY
 
 Start-GodotWindow `
-    -ScenePath "res://projects/client/src/screens/ingame_screen.tscn" `
+    -ScenePath "res://projects/client/src/client_app.tscn" `
     -X $RightX `
     -Y $BottomY
