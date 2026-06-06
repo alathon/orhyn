@@ -28,7 +28,7 @@ body = NodePath("../PhysicsBody")
 
 [node name="PlayerMovementReconciliation" type="Node" parent="." unique_id=632785820 node_paths=PackedStringArray("body", "player_input")]
 script = ExtResource("4_kc0s5")
-position_drift_epsilon = 0.001
+position_drift_epsilon = 0.05
 debug_corrections = true
 body = NodePath("../PhysicsBody")
 player_input = NodePath("../PlayerInput")

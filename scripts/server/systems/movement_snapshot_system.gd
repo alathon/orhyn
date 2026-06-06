@@ -14,7 +14,7 @@ func _on_tick(tick: int, _delta: float):
 			var body: PhysicsBody = player.get_body()
 			var snapshot = MovementSnapshotMsg.EntitySnapshot.new()
 			snapshot.entity_id = player.entity_id
-			snapshot.last_processed_movement_seq = player_input_buffers.get_last_processed_seq(player.peer_id)
+			snapshot.last_processed_movement_seq = player.input_buffer.get_last_processed_seq()
 			snapshot.position = body.global_position
 			snapshot.velocity = body.velocity
 			snapshot.rotation = body.global_transform.basis.get_rotation_quaternion()

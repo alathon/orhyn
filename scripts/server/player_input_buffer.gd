@@ -4,19 +4,17 @@ extends Node
 const INVALID_INPUT_SEQ := 0xFFFFFFFF
 
 class PeerBuffer:
-	var peer_id = -1
 	var last_seen_seq = -1
 	var last_processed_seq = -1
 	var last_held_input: MovementInputFrame
 	var synthetic_input: MovementInputFrame
 	var inputs_by_seq: Dictionary = {}
 
-	func _init(p_peer_id: int) -> void:
-		peer_id = p_peer_id
+	func _init() -> void:
 		last_held_input = MovementInputFrame.empty(-1)
 		synthetic_input = MovementInputFrame.empty(-1)
 
-var peer_buffer: PeerBuffer
+var peer_buffer: PeerBuffer = PeerBuffer.new()
 var _missing_peer_input: MovementInputFrame = MovementInputFrame.empty(-1)
 
 func get_next_input() -> MovementInputFrame:
