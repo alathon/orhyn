@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://cfh6ug57ipmbs"]
+
+[ext_resource type="PackedScene" uid="uid://8fupy015edo8" path="res://projects/zones/assets/environment/imports/Mushroom_Oyster.gltf" id="1_n0f3m"]
+
+[node name="Mushroom_Oyster2" instance=ExtResource("1_n0f3m")]

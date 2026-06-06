@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://bhpoteefojrsp"]
+
+[ext_resource type="PackedScene" uid="uid://c100wf8xh6wis" path="res://projects/zones/assets/environment/imports/RockPath_Square_Small_3.gltf" id="1_lf1s1"]
+
+[node name="RockPath_Square_Small_32" instance=ExtResource("1_lf1s1")]

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dijrm0tjvc0xj"]
 
 [ext_resource type="Script" uid="uid://byq7muhg2aten" path="res://projects/server/server_player_entity.gd" id="1_dnu26"]
-[ext_resource type="Script" uid="uid://bse8le1fndpvu" path="res://projects/shared/physics_body.gd" id="1_m4u6d"]
+[ext_resource type="Script" uid="uid://bse8le1fndpvu" path="res://projects/shared/entities/physics_body.gd" id="1_m4u6d"]
 [ext_resource type="Script" uid="uid://c8d6r7xkvtq6k" path="res://projects/server/player_input_buffer.gd" id="2_ea5tu"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_l2lw7"]

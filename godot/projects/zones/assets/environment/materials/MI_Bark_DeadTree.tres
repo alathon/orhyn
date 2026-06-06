@@ -1,0 +1,12 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://bbcpjdj21w7h3"]
+
+[ext_resource type="Shader" uid="uid://bpxywknpqlxwb" path="res://projects/zones/assets/environment/materials/M_Bark.gdshader" id="1_jkq3n"]
+[ext_resource type="Texture2D" uid="uid://4t3j1q2qqk17" path="res://projects/zones/assets/environment/textures/Bark_DeadTree_Normal.png" id="2_ahdjg"]
+[ext_resource type="Texture2D" uid="uid://bcccpgs5676b6" path="res://projects/zones/assets/environment/textures/Bark_DeadTree.png" id="3_x1xek"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_jkq3n")
+shader_parameter/texture_albedo = ExtResource("3_x1xek")
+shader_parameter/normal_map = ExtResource("2_ahdjg")
+shader_parameter/Color_Bottom = Color(0, 0, 0, 1)

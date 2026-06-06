@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://byrr0hiu0rvpg"]
+
+[ext_resource type="PackedScene" uid="uid://dp1p7hj4dvne6" path="res://projects/zones/assets/environment/imports/Mushroom_Laetiporus.gltf" id="1_no4ms"]
+
+[node name="Mushroom_Laetiporus2" instance=ExtResource("1_no4ms")]

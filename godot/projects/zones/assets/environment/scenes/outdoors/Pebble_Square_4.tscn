@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://bynhn453vst5d"]
+
+[ext_resource type="PackedScene" uid="uid://dip00dxa1vbih" path="res://projects/zones/assets/environment/imports/Pebble_Square_4.gltf" id="1_m8psm"]
+
+[node name="Pebble_Square_42" instance=ExtResource("1_m8psm")]

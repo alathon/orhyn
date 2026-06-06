@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://y07v6shfgqqn"]
+
+[ext_resource type="Texture2D" uid="uid://dr27vqmob6b3n" path="res://projects/zones/assets/environment/textures/PathRocks_Desert_Diffuse.png" id="1_kg8ei"]
+
+[resource]
+albedo_texture = ExtResource("1_kg8ei")
+metallic_specular = 0.0

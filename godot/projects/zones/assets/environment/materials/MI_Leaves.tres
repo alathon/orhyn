@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://b43nm87c4l54o"]
+
+[ext_resource type="Shader" uid="uid://ctg2jp41580hq" path="res://projects/zones/assets/environment/materials/M_BaseFoliage.gdshader" id="1_2ouum"]
+[ext_resource type="Texture2D" uid="uid://h35uej8tofad" path="res://projects/zones/assets/environment/materials/T_FoliageNoise.tres" id="2_0s6xt"]
+[ext_resource type="Texture2D" uid="uid://dyw3bxdi0py72" path="res://projects/zones/assets/environment/textures/Leaves.png" id="3_4fat2"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_2ouum")
+shader_parameter/texture_albedo = ExtResource("3_4fat2")
+shader_parameter/WindSpeed = 2.0
+shader_parameter/WindIntensity = 0.2
+shader_parameter/GeneratedNoise = ExtResource("2_0s6xt")
+shader_parameter/alpha_scissor_threshold = 0.606

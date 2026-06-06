@@ -1,0 +1,88 @@
+[gd_resource type="Terrain3DAssets" format=3 uid="uid://bgqag4pdt8cwi"]
+
+[ext_resource type="PackedScene" uid="uid://v1mahfhc4qb" path="res://projects/zones/assets/environment/imports/Grass_Common_Short.gltf" id="1_xi5sn"]
+[ext_resource type="PackedScene" uid="uid://t7l53w653s8d" path="res://projects/zones/assets/environment/imports/Fern_1.gltf" id="2_82h3v"]
+[ext_resource type="Texture2D" uid="uid://dg24o8dlobrho" path="res://projects/common/assets/textures/grass_packed_albedo_height.png" id="2_ut15n"]
+[ext_resource type="Texture2D" uid="uid://0kd13m4gqhtl" path="res://projects/common/assets/textures/grass_normal_roughness.png" id="3_8dimc"]
+[ext_resource type="PackedScene" uid="uid://c2km2as87my61" path="res://projects/zones/assets/environment/imports/Flower_1_Group.gltf" id="3_frn8a"]
+[ext_resource type="PackedScene" uid="uid://br7i56bufmsbc" path="res://projects/zones/assets/environment/scenes/outdoors/Grass_Common_Short.tscn" id="4_5dpfc"]
+[ext_resource type="Texture2D" uid="uid://cv2i17i6o7qam" path="res://projects/common/assets/textures/ground_packed_albedo_height.png" id="4_82h3v"]
+[ext_resource type="Texture2D" uid="uid://c5w2qcno0wsxy" path="res://projects/common/assets/textures/ground_packed_normal_roughness.png" id="5_frn8a"]
+[ext_resource type="Texture2D" uid="uid://8ju3jvb0qn0l" path="res://projects/common/assets/textures/rock_packed_albedo_height.png" id="6_5dpfc"]
+[ext_resource type="Texture2D" uid="uid://cuo2nidj6c8mt" path="res://projects/common/assets/textures/rock_packed_normal_roughness.png" id="7_qqmhm"]
+[ext_resource type="Texture2D" uid="uid://cnh5msicanggl" path="res://projects/common/assets/textures/brown_mud_leaves_albedo.png" id="8_eamfy"]
+[ext_resource type="Texture2D" uid="uid://bfcm4sqent5sn" path="res://projects/common/assets/textures/brown_mud_leaves_normal_roughness.png" id="9_6cwnw"]
+[ext_resource type="Texture2D" uid="uid://b45eia5f73epo" path="res://projects/common/assets/textures/gravelly_sand_albedo_height.png" id="10_da3tb"]
+[ext_resource type="Texture2D" uid="uid://coag6slxlruna" path="res://projects/common/assets/textures/gravelly_sand_normal_roughness.png" id="11_i4cjy"]
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_f35dn"]
+name = "Grass_Common_Short"
+scene_file = ExtResource("1_xi5sn")
+density = 10.0
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_qqmhm"]
+name = "Fern_1"
+id = 1
+scene_file = ExtResource("2_82h3v")
+density = 1.5872796
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_eamfy"]
+name = "Flower_1_Group"
+id = 2
+scene_file = ExtResource("3_frn8a")
+density = 2.1169896
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DMeshAsset" id="Terrain3DMeshAsset_6cwnw"]
+name = "Grass_Common_Short"
+id = 3
+scene_file = ExtResource("4_5dpfc")
+density = 10.0
+last_lod = 0
+last_shadow_lod = 0
+lod0_range = 128.0
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_g14re"]
+name = "Grass"
+albedo_color = Color(0.85426205, 0.6335228, 0.60059625, 1)
+albedo_texture = ExtResource("2_ut15n")
+normal_texture = ExtResource("3_8dimc")
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_0hh51"]
+name = "Ground"
+id = 1
+albedo_texture = ExtResource("4_82h3v")
+normal_texture = ExtResource("5_frn8a")
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_4qqcx"]
+name = "Rock"
+id = 2
+albedo_color = Color(1.122, 0.9107072, 0.8023698, 1)
+albedo_texture = ExtResource("6_5dpfc")
+normal_texture = ExtResource("7_qqmhm")
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_lx8su"]
+name = "Brown Mud Leaves"
+id = 3
+albedo_color = Color(0.85750735, 0.9937275, 0.63742006, 1)
+albedo_texture = ExtResource("8_eamfy")
+normal_texture = ExtResource("9_6cwnw")
+
+[sub_resource type="Terrain3DTextureAsset" id="Terrain3DTextureAsset_i7sjh"]
+name = "gravelly_sand_albedo_height"
+id = 4
+albedo_color = Color(0.592427, 0.6366978, 0.40602538, 1)
+albedo_texture = ExtResource("10_da3tb")
+normal_texture = ExtResource("11_i4cjy")
+
+[resource]
+mesh_list = Array[Terrain3DMeshAsset]([SubResource("Terrain3DMeshAsset_f35dn"), SubResource("Terrain3DMeshAsset_qqmhm"), SubResource("Terrain3DMeshAsset_eamfy"), SubResource("Terrain3DMeshAsset_6cwnw")])
+texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_g14re"), SubResource("Terrain3DTextureAsset_0hh51"), SubResource("Terrain3DTextureAsset_4qqcx"), SubResource("Terrain3DTextureAsset_lx8su"), SubResource("Terrain3DTextureAsset_i7sjh")])

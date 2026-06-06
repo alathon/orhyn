@@ -1,0 +1,27 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://b84scjo5cjjii"]
+
+[ext_resource type="Shader" uid="uid://c34nq357kf6c0" path="res://projects/zones/assets/environment/materials/M_Grass.gdshader" id="1_eqldf"]
+[ext_resource type="Texture2D" uid="uid://h35uej8tofad" path="res://projects/zones/assets/environment/materials/T_FoliageNoise.tres" id="2_cymgd"]
+[ext_resource type="Texture2D" uid="uid://hu762cndrun6" path="res://projects/zones/assets/environment/textures/Noise_Wind.png" id="3_5xk7i"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_eqldf")
+shader_parameter/Color_Top = Color(0.545, 0.659, 0, 1)
+shader_parameter/Color_Bottom = Color(0.09, 0.239, 0, 1)
+shader_parameter/wind_line_color = Color(0.549, 0.588, 0, 1)
+shader_parameter/WindSpeed = 0.6230000295925
+shader_parameter/WindIntensity = 0.0650000030875
+shader_parameter/NoiseTexture = ExtResource("3_5xk7i")
+shader_parameter/NoisePanSpeed = Vector2(0.012, 0)
+shader_parameter/NoiseScale = 50.0
+shader_parameter/WindLineStrength = 0.0
+shader_parameter/WindLineSaturation = 5.0
+shader_parameter/World_Color_Variation = Color(0, 0.514, 0.306, 1)
+shader_parameter/GeneratedNoise = ExtResource("2_cymgd")
+shader_parameter/Player_Position = Vector3(0, 0, 0)
+shader_parameter/Grass_Flatten_Enabled = true
+shader_parameter/Grass_Flatten_Radius = 2.25
+shader_parameter/Grass_Flatten_Strength = 0.50000002375
+shader_parameter/Grass_Flatten_Horizontal_Strength = 0.50000002375
+shader_parameter/Grass_Flatten_Vertical_Strength = 0.30000001425

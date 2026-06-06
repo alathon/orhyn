@@ -2,7 +2,7 @@
 
 [ext_resource type="Terrain3DMaterial" uid="uid://dxjiio8qse3mb" path="res://data/new_terrain_3d_material.tres" id="1_moqai"]
 [ext_resource type="Terrain3DAssets" uid="uid://cflggrxrtbfju" path="res://data/new_terrain_3d_assets.tres" id="2_5g3dn"]
-[ext_resource type="Script" uid="uid://cl2lbdvark513" path="res://projects/shared/ticker.gd" id="3_4tdu6"]
+[ext_resource type="Script" uid="uid://cl2lbdvark513" path="res://projects/shared/globals/ticker.gd" id="3_4tdu6"]
 [ext_resource type="Script" uid="uid://1dw21ukwu4vs" path="res://projects/server/server_network.gd" id="4_ltp1w"]
 [ext_resource type="Script" uid="uid://78yuijk5ovty" path="res://projects/server/entity_spawner.gd" id="5_x5607"]
 [ext_resource type="Script" uid="uid://dh1cfhwqu5vnb" path="res://projects/server/player_input_buffers.gd" id="6_ltp1w"]

@@ -1,0 +1,16 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://beo5l0vwx1ieq"]
+
+[ext_resource type="Shader" uid="uid://uy71fv54l15c" path="res://projects/zones/assets/environment/materials/M_Leaves.gdshader" id="1_ylh76"]
+[ext_resource type="Texture2D" uid="uid://cx6mjitrqq7mt" path="res://projects/zones/assets/environment/textures/Leaves_TwistedTree.png" id="2_y7ylu"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_ylh76")
+shader_parameter/Leaf_Color = Color(0.24207887, 0.46755052, 0.17911777, 1)
+shader_parameter/Alpha = ExtResource("2_y7ylu")
+shader_parameter/SSS_Color = Color(0.12952042, 0.33807975, 0.14578465, 1)
+shader_parameter/WindSpeed = 10.0
+shader_parameter/WindStrength = 0.1
+shader_parameter/SSS_Strength = 1.51
+shader_parameter/SSS_Blend = 0.61
+shader_parameter/GlobalVariation = true

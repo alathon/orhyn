@@ -1,0 +1,12 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://cwu1hc5pnivip"]
+
+[ext_resource type="Shader" uid="uid://bpxywknpqlxwb" path="res://projects/zones/assets/environment/materials/M_Bark.gdshader" id="1_kc5pn"]
+[ext_resource type="Texture2D" uid="uid://g13mi45bcai4" path="res://projects/zones/assets/environment/textures/Bark_BirchTree_Normal.png" id="2_lstot"]
+[ext_resource type="Texture2D" uid="uid://hws1bx4tgq4t" path="res://projects/zones/assets/environment/textures/Bark_BirchTree.png" id="3_8dqe6"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_kc5pn")
+shader_parameter/texture_albedo = ExtResource("3_8dqe6")
+shader_parameter/normal_map = ExtResource("2_lstot")
+shader_parameter/Color_Bottom = Color(0.288832, 0.354161, 4.81308e-08, 1)

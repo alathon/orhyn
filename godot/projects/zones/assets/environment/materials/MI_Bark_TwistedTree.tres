@@ -1,0 +1,12 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://gvqde2ppgd4q"]
+
+[ext_resource type="Shader" uid="uid://bpxywknpqlxwb" path="res://projects/zones/assets/environment/materials/M_Bark.gdshader" id="1_ibs5p"]
+[ext_resource type="Texture2D" uid="uid://b62ylf08685uo" path="res://projects/zones/assets/environment/textures/Bark_TwistedTree_Normal.png" id="2_ajpfy"]
+[ext_resource type="Texture2D" uid="uid://ixawdwmopci7" path="res://projects/zones/assets/environment/textures/Bark_TwistedTree.png" id="3_f82q2"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_ibs5p")
+shader_parameter/texture_albedo = ExtResource("3_f82q2")
+shader_parameter/normal_map = ExtResource("2_ajpfy")
+shader_parameter/Color_Bottom = Color(0.2186, 0.270584, 1.44392e-07, 1)

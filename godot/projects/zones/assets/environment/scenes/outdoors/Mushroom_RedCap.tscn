@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://b7yi2ddmqd0b0"]
+
+[ext_resource type="PackedScene" uid="uid://2t6x75ani2yx" path="res://projects/zones/assets/environment/imports/Mushroom_RedCap.gltf" id="1_15khb"]
+
+[node name="Mushroom_RedCap2" instance=ExtResource("1_15khb")]
