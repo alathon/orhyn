@@ -34,8 +34,23 @@ func test_limits_previous_inputs_to_three() -> void:
 	)
 
 	assert_eq(msg.inputs.size(), 4)
-	assert_eq(msg.inputs[0].seq, 1)
+	assert_eq(msg.inputs[0].seq, 2)
 	assert_eq(msg.inputs[3].seq, 5)
+
+func test_ignores_noncontiguous_previous_inputs() -> void:
+	var previous_inputs: Array[MovementInputFrame] = [
+		_make_input(5, 0.0, 0.0),
+		_make_input(7, 0.0, 0.0),
+	]
+	var current_input: MovementInputFrame = _make_input(8, 0.0, 0.0)
+
+	var msg: MovementInputMsg = MovementInputMsg.decode(
+		MovementInputMsg.encode(current_input, previous_inputs)
+	)
+
+	assert_eq(msg.inputs.size(), 2)
+	assert_eq(msg.inputs[0].seq, 7)
+	assert_eq(msg.inputs[1].seq, 8)
 
 func test_accepts_single_previous_input_for_callsite_compatibility() -> void:
 	var previous_input: MovementInputFrame = _make_input(3, -0.25, 0.75)

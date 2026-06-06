@@ -52,7 +52,7 @@ func send_player_input(input: MovementInputFrame, previous_inputs: Array = []) -
 		return ERR_BUSY
 
 	var bytes = MovementInputMsg.encode(input, previous_inputs)
-	return _server_peer.send(CHANNEL_MOVEMENT, bytes, ENetPacketPeer.FLAG_UNSEQUENCED)
+	return _server_peer.send(CHANNEL_MOVEMENT, bytes, 0)
 
 func disconnect_from_server() -> void:
 	if _server_peer != null and _server_peer.get_state() == ENetPacketPeer.STATE_CONNECTED:
