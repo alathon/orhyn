@@ -1,17 +1,16 @@
-class_name Network
+class_name GameServerAPI
 extends Node
 
 signal player_connected(peer_id: int)
 signal player_disconnected(peer_id: int)
 signal player_input_received(peer_id: int, input: MovementInputFrame)
 
-const BIND_ADDRESS := "0.0.0.0"
-const PORT := 4242
 const CHANNEL_MOVEMENT := 0
 const CHANNEL_MOVEMENT_SNAPSHOT := 1
 const CHANNEL_ENTITY_LIFECYCLE := 2
-const MAX_PEERS := 32
 const CHANNEL_COUNT := 3
+
+@export var _config: GameServerConfig
 
 var _connection = ENetConnection.new()
 var _peer_ids: Dictionary = {}
@@ -24,13 +23,14 @@ var _next_peer_id = 1
 var _is_listening = false
 
 func _ready() -> void:
-	var err = _connection.create_host_bound(BIND_ADDRESS, PORT, MAX_PEERS, CHANNEL_COUNT)
+	var err: Error = _connection.create_host_bound(_config.bind_address, _config.port, _config.max_peers, CHANNEL_COUNT)
 	if err != OK:
-		push_error("Server ENet bind failed on %s:%d: %s" % [BIND_ADDRESS, PORT, error_string(err)])
+		push_error("Server ENet bind failed on %s:%d: %s" % [_config.bind_address, _config.port, error_string(err)])
 		return
 
 	_is_listening = true
-	print("Server listening on %s:%d" % [BIND_ADDRESS, PORT])
+	print("Game server config: %s" % str(_config.describe()))
+	print("Server listening on %s:%d" % [_config.bind_address, _config.port])
 
 func _process(_delta: float) -> void:
 	if not _is_listening:
@@ -41,7 +41,7 @@ func _process(_delta: float) -> void:
 
 func _poll_network() -> void:
 	while true:
-		var event = _connection.service(0)
+		var event: Array = _connection.service(0)
 		var event_type: int = event[0]
 
 		if event_type == ENetConnection.EVENT_NONE:
@@ -54,7 +54,7 @@ func _poll_network() -> void:
 		var peer: ENetPacketPeer = event[1]
 		match event_type:
 			ENetConnection.EVENT_CONNECT:
-				var peer_id = _assign_peer_id(peer)
+				var peer_id: int = _assign_peer_id(peer)
 				print("Client connected: peer=%d %s:%d" % [peer_id, peer.get_remote_address(), peer.get_remote_port()])
 				player_connected.emit(peer_id)
 			ENetConnection.EVENT_DISCONNECT:
@@ -64,12 +64,12 @@ func _poll_network() -> void:
 					_receive_movement_input(peer)
 
 func _receive_movement_input(peer: ENetPacketPeer) -> void:
-	var msg = MovementInputMsg.decode(peer.get_packet())
+	var msg: MovementInputMsg = MovementInputMsg.decode(peer.get_packet())
 	if msg.inputs.is_empty():
 		push_warning("Dropped malformed movement input packet")
 		return
 
-	var peer_id = _get_peer_id(peer)
+	var peer_id: int = _get_peer_id(peer)
 	for input in msg.inputs:
 		_receive_movement_input_frame(peer_id, input)
 
@@ -89,14 +89,14 @@ func _receive_movement_input_frame(peer_id: int, input: MovementInputFrame) -> v
 	# )
 
 func _cleanup_disconnected_peers() -> void:
-	var peer_ids = _peers_by_id.keys()
+	var peer_ids: Array = _peers_by_id.keys()
 	for peer_id in peer_ids:
 		var peer = _peers_by_id.get(peer_id) as ENetPacketPeer
 		if peer == null or peer.get_state() == ENetPacketPeer.STATE_DISCONNECTED:
 			_disconnect_peer(peer, int(peer_id))
 
-func _disconnect_peer(peer: ENetPacketPeer, known_peer_id := -1) -> void:
-	var peer_id = known_peer_id
+func _disconnect_peer(peer: ENetPacketPeer, known_peer_id: int = -1) -> void:
+	var peer_id: int = known_peer_id
 	if peer_id == -1 and peer != null:
 		peer_id = _get_peer_id(peer)
 
@@ -125,8 +125,8 @@ func _disconnect_peer(peer: ENetPacketPeer, known_peer_id := -1) -> void:
 	print("Client disconnected: peer=%d %s:%d" % [peer_id, address, port])
 
 func _assign_peer_id(peer: ENetPacketPeer) -> int:
-	var key = _peer_key(peer)
-	var peer_id = _next_peer_id
+	var key: String = _peer_key(peer)
+	var peer_id: int = _next_peer_id
 	_next_peer_id += 1
 	_peer_ids[key] = peer_id
 	_peer_ids_by_instance_id[peer.get_instance_id()] = peer_id
@@ -159,6 +159,12 @@ func broadcast_entity_lifecycle(bytes: PackedByteArray, excluded_peer_ids: Array
 		if excluded_peer_ids.has(int(peer_id)):
 			continue
 		send_entity_lifecycle(int(peer_id), bytes)
+
+func is_listening() -> bool:
+	return _is_listening
+
+func get_peer_count() -> int:
+	return _peers_by_id.size()
 
 func _get_peer_id(peer: ENetPacketPeer) -> int:
 	var instance_id = peer.get_instance_id()

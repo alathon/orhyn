@@ -1,8 +1,8 @@
 class_name PlayerMovementSystem
 extends BaseSystem
 
-@onready var entity_tracker: EntityTracker = %EntityTracker
-@onready var systems: Systems = %TickSystems
+@export var entity_tracker: EntityTracker
+@export var systems: TickSystems
 
 func _on_tick(_tick: int, delta: float):
 	var players: Dictionary = entity_tracker.get_players()

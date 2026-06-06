@@ -1,7 +1,7 @@
 class_name EntityTracker
 extends Node
 
-@onready var entity_spawner: EntitySpawner = %EntitySpawner
+@export var entity_spawner: EntitySpawner
 
 var _next_entity_id: int = 1
 var _entities_by_entity_id: Dictionary = {}

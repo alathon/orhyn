@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" uid="uid://kba4rt27qf5w" path="res://projects/client/src/screens/LogoutRefreshScreen.gd" id="1_logout_refresh"]
+[ext_resource type="Script" uid="uid://cnmnq5gn0sdu0" path="res://projects/client/src/network/LoginClient.gd" id="2_login_client"]
+
+[node name="LogoutRefreshScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_logout_refresh")
+
+[node name="LoginClient" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("2_login_client")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.035, 0.045, 0.052, 1)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="StatusLabel" type="Label" parent="Center"]
+layout_mode = 2
+text = "Returning to character select..."
+horizontal_alignment = 1

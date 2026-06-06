@@ -1,11 +1,12 @@
-class_name Systems
+class_name TickSystems
 extends Node
 
-@onready var entity_tracker: EntityTracker = %EntityTracker
-@onready var server_network: Network = %Network
-@onready var player_inputs_system: PlayerInputsSystem = %PlayerInputsSystem
-@onready var player_movement_system: PlayerMovementSystem = %PlayerMovementSystem
-@onready var movement_snapshot_system: MovementSnapshotSystem = %MovementSnapshotSystem
+@export var entity_tracker: EntityTracker
+@export var game_server_api: GameServerAPI
+@export_category("Tick systems")
+@export var player_inputs_system: PlayerInputsSystem
+@export var player_movement_system: PlayerMovementSystem
+@export var movement_snapshot_system: MovementSnapshotSystem
 
 const MAX_ENTITIES: int = 500
 

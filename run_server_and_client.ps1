@@ -17,21 +17,36 @@ function Start-GodotWindow
     param(
         [string] $ScenePath,
         [int] $X,
-        [int] $Y
+        [int] $Y,
+        [string[]] $UserArgs = @()
     )
 
-    Start-Process godot -WorkingDirectory $ProjectPath -ArgumentList @(
+    $ArgumentList = @(
         "--path", "./godot",
         "--windowed",
         "--position", "$X,$Y",
         "--scene", $ScenePath
     )
+
+    if ($UserArgs.Count -gt 0)
+    {
+        $ArgumentList += "--"
+        $ArgumentList += $UserArgs
+    }
+
+    Start-Process godot -WorkingDirectory $ProjectPath -ArgumentList $ArgumentList
 }
 
 Start-GodotWindow `
     -ScenePath "res://projects/game-server/src/main.tscn" `
     -X $LeftX `
-    -Y $TopY
+    -Y $TopY `
+    -UserArgs @(
+        "--zone", "mvp",
+        "--port", "4242",
+        "--advertise-address", "127.0.0.1",
+        "--orchestrator-url", "ws://127.0.0.1:9000/ws"
+    )
 
 Start-Sleep -Milliseconds 500
 

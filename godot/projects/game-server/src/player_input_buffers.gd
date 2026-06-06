@@ -3,8 +3,8 @@ extends Node
 
 const INVALID_INPUT_SEQ := 0xFFFFFFFF
 
-@onready var network: Network = %Network
-@onready var entity_tracker: EntityTracker = %EntityTracker
+@export var network: GameServerAPI
+@export var entity_tracker: EntityTracker
 
 func _ready() -> void:
 	network.player_input_received.connect(_on_player_input_received)

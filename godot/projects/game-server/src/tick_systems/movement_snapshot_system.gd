@@ -1,9 +1,9 @@
 class_name MovementSnapshotSystem
 extends BaseSystem
 
-@onready var player_input_buffers: PlayerInputBuffers = %PlayerInputBuffers
-@onready var network: Network = %Network
-@onready var systems: Systems = %TickSystems
+@export var player_input_buffers: PlayerInputBuffers
+@export var network: GameServerAPI
+@export var systems: TickSystems
 
 func _on_tick(tick: int, _delta: float):
 	var entities: Array[MovementSnapshotMsg.EntitySnapshot] = []
