@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://byq7muhg2aten" path="res://scripts/server/server_player_entity.gd" id="1_dnu26"]
 [ext_resource type="Script" uid="uid://bse8le1fndpvu" path="res://scripts/shared/physics_body.gd" id="1_m4u6d"]
+[ext_resource type="Script" uid="uid://c8d6r7xkvtq6k" path="res://scripts/server/player_input_buffer.gd" id="2_ea5tu"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_l2lw7"]
 
@@ -9,6 +10,9 @@
 
 [node name="ServerPlayerEntity" type="Node" unique_id=1215361097]
 script = ExtResource("1_dnu26")
+
+[node name="InputBuffer" type="Node" parent="." unique_id=1878317140]
+script = ExtResource("2_ea5tu")
 
 [node name="Body" type="CharacterBody3D" parent="." unique_id=2084136788]
 collision_mask = 2

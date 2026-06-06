@@ -1,13 +1,12 @@
 extends Node
 
-@onready var ticker: Ticker = %Ticker
 @onready var api: API = $API
 @onready var entity_spawner: ClientEntitySpawner = $EntitySpawner
 
 var _last_tick_delta: float = Ticker.DEFAULT_TICK_SECONDS
 
 func _ready() -> void:
-	ticker.tick.connect(_on_tick)
+	GlobalTicker.tick.connect(_on_tick)
 	api.movement_snapshot_received.connect(_on_movement_snapshot_received)
 
 func _on_tick(_n: int, delta: float) -> void:

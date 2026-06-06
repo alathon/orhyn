@@ -11,11 +11,11 @@ const SPAWN_POSITION := Vector3(-39.976143, 0.7148186, -40.79889)
 
 @onready var entities: Node = %Entities
 @onready var entity_tracker: EntityTracker = %EntityTracker
-@onready var server_network: Node = %Network
+@onready var network: Node = %Network
 
 func _ready() -> void:
-	server_network.player_connected.connect(_on_player_connected)
-	server_network.player_disconnected.connect(_on_player_disconnected)
+	network.player_connected.connect(_on_player_connected)
+	network.player_disconnected.connect(_on_player_disconnected)
 
 func _on_player_connected(peer_id: int) -> void:
 	if entity_tracker.has_player(peer_id):
@@ -52,19 +52,19 @@ func _send_initial_lifecycle(peer_id: int, controlled_entity_id: int) -> void:
 		spawns.append(_make_spawn_record(player))
 
 	var bytes = EntityLifecycleMsg.encode(spawns, [], controlled_entity_id)
-	server_network.send_entity_lifecycle(peer_id, bytes)
+	network.send_entity_lifecycle(peer_id, bytes)
 
 func _broadcast_spawn(player: ServerPlayerEntity, excluded_peer_ids: Array[int] = []) -> void:
 	var spawns: Array[EntityLifecycleMsg.SpawnRecord] = [_make_spawn_record(player)]
 	var bytes = EntityLifecycleMsg.encode(spawns, [])
-	server_network.broadcast_entity_lifecycle(bytes, excluded_peer_ids)
+	network.broadcast_entity_lifecycle(bytes, excluded_peer_ids)
 
 func _broadcast_despawn(entity_id: int) -> void:
 	var despawn = EntityLifecycleMsg.DespawnRecord.new()
 	despawn.entity_id = entity_id
 	var despawns: Array[EntityLifecycleMsg.DespawnRecord] = [despawn]
 	var bytes = EntityLifecycleMsg.encode([], despawns)
-	server_network.broadcast_entity_lifecycle(bytes)
+	network.broadcast_entity_lifecycle(bytes)
 
 func _make_spawn_record(player: ServerPlayerEntity) -> EntityLifecycleMsg.SpawnRecord:
 	var body: PhysicsBody = player.get_body()

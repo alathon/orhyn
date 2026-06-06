@@ -17,21 +17,18 @@ func _ready() -> void:
 	_base_model_transform = model.transform
 	_from_transform = model.global_transform
 	_to_transform = model.global_transform
-	_connect_ticker()
+	
+	GlobalTicker.before_tick.connect(_on_before_tick)
+	GlobalTicker.after_tick.connect(_on_after_tick)
 
-func _connect_ticker() -> void:
-	var ticker := _find_ticker()
-	if ticker == null:
-		return
+func set_model(m: Node3D):
+	model = m
+	_base_model_transform = model.transform
+	_from_transform = model.global_transform
+	_to_transform = model.global_transform
 
-	ticker.before_tick.connect(_on_before_tick)
-	ticker.after_tick.connect(_on_after_tick)
-
-func _find_ticker() -> Ticker:
-	var scene := get_tree().current_scene
-	if scene == null:
-		return null
-	return scene.get_node_or_null("%Ticker") as Ticker
+func set_body(b: PhysicsBody):
+	body = b
 
 func _on_before_tick(_n: int, _delta: float) -> void:
 	if model == null:

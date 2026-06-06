@@ -48,20 +48,21 @@ player_entity_scene = ExtResource("7_52413")
 unique_name_in_owner = true
 script = ExtResource("6_ltp1w")
 
-[node name="ServerGameSystems" type="Node" parent="." unique_id=339430638]
+[node name="TickSystems" type="Node" parent="." unique_id=339430638]
+unique_name_in_owner = true
 script = ExtResource("7_x5607")
 
-[node name="PlayerMovementSystem" type="Node" parent="ServerGameSystems" unique_id=1875064259]
-unique_name_in_owner = true
-script = ExtResource("9_dmm45")
-metadata/_custom_type_script = "uid://d32luervdahj5"
-
-[node name="PlayerInputsSystem" type="Node" parent="ServerGameSystems" unique_id=1602953048]
+[node name="PlayerInputsSystem" type="Node" parent="TickSystems" unique_id=1602953048]
 unique_name_in_owner = true
 script = ExtResource("9_45lij")
 metadata/_custom_type_script = "uid://cyo2tal1uilyh"
 
-[node name="MovementSnapshotSystem" type="Node" parent="ServerGameSystems" unique_id=1013293267]
+[node name="PlayerMovementSystem" type="Node" parent="TickSystems" unique_id=1875064259]
+unique_name_in_owner = true
+script = ExtResource("9_dmm45")
+metadata/_custom_type_script = "uid://d32luervdahj5"
+
+[node name="MovementSnapshotSystem" type="Node" parent="TickSystems" unique_id=1013293267]
 unique_name_in_owner = true
 script = ExtResource("12_efkvs")
 metadata/_custom_type_script = "uid://blaejrs7mv3f7"
