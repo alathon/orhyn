@@ -1,0 +1,92 @@
+[gd_scene format=3 uid="uid://cw015iv3beffl"]
+
+[ext_resource type="Script" uid="uid://3isx3li0g68v" path="res://projects/client/src/screens/character_row.gd" id="1_ehpp1"]
+[ext_resource type="Texture2D" uid="uid://dym5k0kwu8d7q" path="res://projects/client/assets/ui/images/screens/char_select/icons/class_2.png" id="1_ntcjf"]
+
+[node name="CharacterRow" type="Panel" unique_id=464468281]
+custom_minimum_size = Vector2(470, 130)
+size_flags_vertical = 3
+script = ExtResource("1_ehpp1")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=730748900]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LeftIcon" type="Panel" parent="HBoxContainer" unique_id=397829991]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.75
+
+[node name="ClassIcon" type="TextureRect" parent="HBoxContainer/LeftIcon" unique_id=131865367]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 130)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_ntcjf")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="CharacterInfo" type="Panel" parent="HBoxContainer" unique_id=2007661986]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.4
+
+[node name="MarginContainer" type="MarginContainer" parent="HBoxContainer/CharacterInfo" unique_id=1047929747]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/CharacterInfo/MarginContainer" unique_id=1960451992]
+layout_mode = 2
+
+[node name="CharacterName" type="RichTextLabel" parent="HBoxContainer/CharacterInfo/MarginContainer/VBoxContainer" unique_id=2873294]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+text = "Thalion"
+
+[node name="CharacterRaceClassLevel" type="RichTextLabel" parent="HBoxContainer/CharacterInfo/MarginContainer/VBoxContainer" unique_id=507254382]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
+theme_override_font_sizes/normal_font_size = 12
+text = "Human Knight
+Level 20"
+
+[node name="ZoneInfo" type="Panel" parent="HBoxContainer" unique_id=591309505]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="HBoxContainer/ZoneInfo" unique_id=2119554751]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 20
+
+[node name="ZoneInfo" type="RichTextLabel" parent="HBoxContainer/ZoneInfo/MarginContainer" unique_id=363558872]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+text = "Zone: MVP"

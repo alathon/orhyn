@@ -1,36 +1,15 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bu7h6mi5filaq"]
 
-[ext_resource type="Script" path="res://projects/client/src/screens/character_select_screen.gd" id="1_character_select"]
-[ext_resource type="Texture2D" path="res://projects/client/assets/ui/images/screens/orhyn_loading_screen.png" id="2_background"]
-[ext_resource type="Texture2D" path="res://projects/client/assets/ui/images/screens/login_frame.png" id="3_frame"]
-[ext_resource type="FontFile" path="res://projects/client/assets/ui/fonts/Cinzel-SemiBold.ttf" id="4_heading_font"]
-[ext_resource type="FontFile" path="res://projects/client/assets/ui/fonts/Cinzel-Regular.ttf" id="5_body_font"]
+[ext_resource type="Script" uid="uid://c5yhakn6i4i4w" path="res://projects/client/src/screens/character_select_screen.gd" id="1_character_select"]
+[ext_resource type="Texture2D" uid="uid://bkw86m66y2x00" path="res://projects/client/assets/ui/images/screens/character_selection_background.png" id="2_background"]
+[ext_resource type="FontFile" uid="uid://c7lq7uw1qu31q" path="res://projects/client/assets/ui/fonts/Cinzel-Regular.ttf" id="4_body_font"]
+[ext_resource type="Texture2D" uid="uid://b8bwbpct5bsn1" path="res://projects/client/assets/ui/images/screens/char_select/character_list_panel.png" id="5_list_panel"]
+[ext_resource type="PackedScene" uid="uid://cw015iv3beffl" path="res://projects/client/src/screens/character_row.tscn" id="5_o8odl"]
+[ext_resource type="Texture2D" uid="uid://niynttq26au0" path="res://projects/client/assets/ui/images/screens/char_select/play_button.png" id="6_play_button"]
+[ext_resource type="Texture2D" uid="uid://c3mrrrjy5a3kq" path="res://projects/client/assets/ui/images/screens/char_select/back_button.png" id="8_back_button"]
+[ext_resource type="Texture2D" uid="uid://cbggtnccfd5f3" path="res://projects/client/assets/ui/images/screens/char_select/character_row_background.png" id="9_row_background"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
-bg_color = Color(0.290196, 0.172549, 0.521569, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.164706, 0.121569, 0.247059, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
-bg_color = Color(0.541176, 0.360784, 1, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.721569, 0.611765, 1, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[node name="CharacterSelectScreen" type="Control"]
+[node name="CharacterSelectScreen" type="Control" unique_id=1319231648]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -38,8 +17,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_character_select")
+character_row_background = ExtResource("9_row_background")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=615209370]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -50,87 +30,96 @@ texture = ExtResource("2_background")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="CharacterPanel" type="Control" parent="." unique_id=936290707]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 76.0
+offset_top = 154.0
+offset_right = 646.0
+offset_bottom = 944.0
+
+[node name="CharacterListPanel" type="TextureRect" parent="CharacterPanel" unique_id=1340034711]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="Frame" type="TextureRect" parent="Center"]
-custom_minimum_size = Vector2(640, 320)
-layout_mode = 2
-texture = ExtResource("3_frame")
+texture = ExtResource("5_list_panel")
 expand_mode = 1
 
-[node name="MarginContainer" type="MarginContainer" parent="Center"]
-layout_mode = 2
-theme_override_constants/margin_left = 56
-theme_override_constants/margin_top = 34
-theme_override_constants/margin_right = 56
-theme_override_constants/margin_bottom = 28
+[node name="RowsMargin" type="MarginContainer" parent="CharacterPanel" unique_id=2060825447]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 50
+theme_override_constants/margin_bottom = 50
 
-[node name="Content" type="VBoxContainer" parent="Center/MarginContainer"]
-custom_minimum_size = Vector2(500, 230)
-layout_mode = 2
-theme_override_constants/separation = 18
-
-[node name="Title" type="Label" parent="Center/MarginContainer/Content"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_heading_font")
-theme_override_font_sizes/font_size = 28
-text = "Select Character"
-horizontal_alignment = 1
-
-[node name="CharacterPanel" type="VBoxContainer" parent="Center/MarginContainer/Content"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="CharacterName" type="Label" parent="Center/MarginContainer/Content/CharacterPanel"]
+[node name="CharacterRows" type="VBoxContainer" parent="CharacterPanel/RowsMargin" unique_id=73832667]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_heading_font")
-theme_override_font_sizes/font_size = 24
-horizontal_alignment = 1
+theme_override_constants/separation = 10
 
-[node name="CharacterDetails" type="Label" parent="Center/MarginContainer/Content/CharacterPanel"]
-unique_name_in_owner = true
+[node name="Panel" parent="CharacterPanel/RowsMargin/CharacterRows" unique_id=464468281 instance=ExtResource("5_o8odl")]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("5_body_font")
+
+[node name="Panel2" parent="CharacterPanel/RowsMargin/CharacterRows" unique_id=61133527 instance=ExtResource("5_o8odl")]
+layout_mode = 2
+
+[node name="Panel3" parent="CharacterPanel/RowsMargin/CharacterRows" unique_id=1186131539 instance=ExtResource("5_o8odl")]
+layout_mode = 2
+
+[node name="Panel4" parent="CharacterPanel/RowsMargin/CharacterRows" unique_id=1548651730 instance=ExtResource("5_o8odl")]
+layout_mode = 2
+
+[node name="Panel5" parent="CharacterPanel/RowsMargin/CharacterRows" unique_id=425690420 instance=ExtResource("5_o8odl")]
+layout_mode = 2
+
+[node name="PlayButton" type="TextureButton" parent="." unique_id=101923050]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 1044.0
+offset_top = 983.0
+offset_right = 1504.0
+offset_bottom = 1114.0
+scale = Vector2(0.65, 0.65)
+texture_normal = ExtResource("6_play_button")
+texture_pressed = ExtResource("6_play_button")
+texture_hover = ExtResource("6_play_button")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="BackButton" type="TextureButton" parent="." unique_id=424038912]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 88.0
+offset_top = 959.0
+offset_right = 332.0
+offset_bottom = 1054.0
+texture_normal = ExtResource("8_back_button")
+texture_pressed = ExtResource("8_back_button")
+texture_hover = ExtResource("8_back_button")
+stretch_mode = 0
+
+[node name="StatusLabel" type="Label" parent="." unique_id=2014748821]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 260.0
+offset_top = 1030.0
+offset_right = 720.0
+offset_bottom = 1065.0
+theme_override_colors/font_color = Color(0.94902, 0.913725, 1, 1)
+theme_override_colors/font_shadow_color = Color(0.607843, 0.360784, 1, 0.4)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("4_body_font")
 theme_override_font_sizes/font_size = 18
-horizontal_alignment = 1
-
-[node name="Buttons" type="HBoxContainer" parent="Center/MarginContainer/Content"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="BackButton" type="Button" parent="Center/MarginContainer/Content/Buttons"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(130, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("4_heading_font")
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-text = "Back"
-
-[node name="PlayButton" type="Button" parent="Center/MarginContainer/Content/Buttons"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("4_heading_font")
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-text = "Enter World"
-
-[node name="StatusLabel" type="Label" parent="Center/MarginContainer/Content"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 24)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("5_body_font")
 horizontal_alignment = 1
 autowrap_mode = 3
