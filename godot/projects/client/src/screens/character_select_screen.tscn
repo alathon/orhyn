@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bu7h6mi5filaq"]
 
-[ext_resource type="Script" uid="uid://c5yhakn6i4i4w" path="res://projects/client/src/screens/character_select_screen.gd" id="1_character_select"]
+[ext_resource type="Script" path="res://projects/client/src/screens/character_select_screen.gd" id="1_character_select"]
 [ext_resource type="Texture2D" uid="uid://bkw86m66y2x00" path="res://projects/client/assets/ui/images/screens/character_selection_background.png" id="2_background"]
 [ext_resource type="FontFile" uid="uid://c7lq7uw1qu31q" path="res://projects/client/assets/ui/fonts/Cinzel-Regular.ttf" id="4_body_font"]
 [ext_resource type="Texture2D" uid="uid://b8bwbpct5bsn1" path="res://projects/client/assets/ui/images/screens/char_select/character_list_panel.png" id="5_list_panel"]
@@ -54,6 +54,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -35.0
+offset_top = 20.0
+offset_right = -35.0
+offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 50

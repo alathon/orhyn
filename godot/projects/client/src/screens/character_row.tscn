@@ -2,11 +2,29 @@
 
 [ext_resource type="Script" uid="uid://3isx3li0g68v" path="res://projects/client/src/screens/character_row.gd" id="1_ehpp1"]
 [ext_resource type="Texture2D" uid="uid://dym5k0kwu8d7q" path="res://projects/client/assets/ui/images/screens/char_select/icons/class_2.png" id="1_ntcjf"]
+[ext_resource type="Shader" path="res://projects/client/src/screens/character_row_selected_glow.gdshader" id="2_glow"]
 
 [node name="CharacterRow" type="Panel" unique_id=464468281]
 custom_minimum_size = Vector2(470, 130)
 size_flags_vertical = 3
 script = ExtResource("1_ehpp1")
+selected_glow_shader = ExtResource("2_glow")
+
+[node name="SelectionGlow" type="ColorRect" parent="." unique_id=1608005796]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 1)
 
 [node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=730748900]
 layout_mode = 1
