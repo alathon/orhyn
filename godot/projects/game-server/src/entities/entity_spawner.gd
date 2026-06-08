@@ -7,7 +7,7 @@ signal entity_despawned(entity: BaseEntity)
 @export var player_entity_scene: PackedScene
 @export var npc_entity: PackedScene
 @export var entity_tracker: EntityTracker
-@export var network: GameServerAPI
+@export var network: GameServerNetwork
 @export var zone_container: ZoneContainer
 
 const SPAWN_POSITION: Vector3 = Vector3(154.0, 18.0, -159.0)

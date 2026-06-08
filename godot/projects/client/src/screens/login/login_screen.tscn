@@ -1,0 +1,165 @@
+[gd_scene format=3 uid="uid://dnp1yuf3h3xaw"]
+
+[ext_resource type="Script" uid="uid://ds8x0nqei2o60" path="res://projects/client/src/screens/login/login_screen.gd" id="1_login_screen"]
+[ext_resource type="Texture2D" uid="uid://o40ne1tbefmr" path="res://projects/client/assets/ui/images/screens/orhyn_login_screen.png" id="2_background"]
+[ext_resource type="Texture2D" uid="uid://c44yk1rg8uy7s" path="res://projects/client/assets/ui/images/screens/login_frame.png" id="3_frame"]
+[ext_resource type="FontFile" uid="uid://c2rgxmcaeym6o" path="res://projects/client/assets/ui/fonts/Cinzel-SemiBold.ttf" id="4_heading_font"]
+[ext_resource type="FontFile" uid="uid://c7lq7uw1qu31q" path="res://projects/client/assets/ui/fonts/Cinzel-Regular.ttf" id="5_body_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.0923971, 0.0923971, 0.0923971, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.252028, 0.252028, 0.252027, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.290196, 0.172549, 0.521569, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.164706, 0.121569, 0.247059, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.541176, 0.360784, 1, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.721569, 0.611765, 1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 2
+
+[node name="LoginScreen" type="Control" unique_id=1702531228]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_login_screen")
+
+[node name="Background" type="TextureRect" parent="." unique_id=627667354]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_background")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BuildLabel" type="Label" parent="." unique_id=1759193742]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 45.0
+offset_top = -52.0
+offset_right = 315.0
+offset_bottom = -18.0
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("5_body_font")
+theme_override_font_sizes/font_size = 22
+text = "build: local"
+
+[node name="Form" type="VBoxContainer" parent="." unique_id=1779919755]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -313.0
+offset_top = -122.0
+offset_right = 287.0
+offset_bottom = 256.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Center" type="CenterContainer" parent="Form" unique_id=159065486]
+layout_mode = 2
+
+[node name="Dimmer" type="ColorRect" parent="Form/Center" unique_id=1420337752]
+custom_minimum_size = Vector2(500, 200)
+layout_mode = 2
+color = Color(0, 0, 0, 0.788235)
+
+[node name="Frame" type="TextureRect" parent="Form/Center" unique_id=1758354710]
+custom_minimum_size = Vector2(600, 300)
+layout_mode = 2
+texture = ExtResource("3_frame")
+expand_mode = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="Form/Center" unique_id=423062756]
+layout_mode = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 40
+
+[node name="Content" type="VBoxContainer" parent="Form/Center/MarginContainer" unique_id=2000194852]
+custom_minimum_size = Vector2(450, 140)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Username" type="VBoxContainer" parent="Form/Center/MarginContainer/Content" unique_id=1356789260]
+layout_mode = 2
+
+[node name="UsernameLabel" type="Label" parent="Form/Center/MarginContainer/Content/Username" unique_id=912070125]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.637843, 0.637843, 0.637843, 1)
+theme_override_fonts/font = ExtResource("4_heading_font")
+text = "USERNAME"
+
+[node name="UsernameInput" type="LineEdit" parent="Form/Center/MarginContainer/Content/Username" unique_id=300589662]
+unique_name_in_owner = true
+modulate = Color(0.74558, 0.74558, 0.74558, 1)
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_body_font")
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+placeholder_text = "Enter your username"
+max_length = 32
+
+[node name="CenterContainer" type="CenterContainer" parent="Form/Center/MarginContainer/Content" unique_id=2092784003]
+layout_mode = 2
+
+[node name="PlayButton" type="Button" parent="Form/Center/MarginContainer/Content/CenterContainer" unique_id=1225493543]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_heading_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+text = "Play"
+
+[node name="StatusLabel" type="Label" parent="Form" unique_id=2064987868]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94902, 0.913725, 1, 1)
+theme_override_colors/font_shadow_color = Color(0.607843, 0.360784, 1, 0.4)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_constants/shadow_outline_size = 2
+horizontal_alignment = 1

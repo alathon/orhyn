@@ -1,4 +1,4 @@
-class_name GameServerAPI
+class_name GameServerNetwork
 extends Node
 
 signal player_connected(peer_id: int)

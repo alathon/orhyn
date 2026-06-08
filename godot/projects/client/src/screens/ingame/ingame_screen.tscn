@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://ljrqooiomv11"]
+
+[ext_resource type="Script" uid="uid://fv10dwsah2od" path="res://projects/client/src/screens/ingame/ingame_screen.gd" id="1_ingame_screen"]
+[ext_resource type="Script" uid="uid://cnq2s61glph30" path="res://projects/client/src/systems/game_systems.gd" id="2_game_systems"]
+[ext_resource type="Script" uid="uid://dtmvbbgw50v4a" path="res://projects/client/src/api/game_server_api.gd" id="3_api"]
+[ext_resource type="Script" uid="uid://by42n0xut2t6e" path="res://projects/client/src/systems/entity_spawner.gd" id="4_entity_spawner"]
+[ext_resource type="PackedScene" uid="uid://hn8q3dj44yod" path="res://projects/client/src/entities/player/player_entity.tscn" id="5_player_entity"]
+[ext_resource type="PackedScene" uid="uid://drt7o4vcdutmn" path="res://projects/client/src/entities/remote/remote_entity.tscn" id="6_remote_entity"]
+[ext_resource type="Script" uid="uid://dcmh1ni873f7k" path="res://projects/client/src/client_zone_container.gd" id="7_zone_container"]
+
+[node name="IngameScreen" type="Node3D" unique_id=239629701 node_paths=PackedStringArray("api", "zone_container")]
+script = ExtResource("1_ingame_screen")
+api = NodePath("GameSystems/API")
+zone_container = NodePath("ZoneContainer")
+
+[node name="GameSystems" type="Node" parent="." unique_id=1368878515]
+unique_name_in_owner = true
+script = ExtResource("2_game_systems")
+
+[node name="API" type="Node" parent="GameSystems" unique_id=1829278941]
+unique_name_in_owner = true
+script = ExtResource("3_api")
+auto_connect = false
+
+[node name="EntitySpawner" type="Node" parent="GameSystems" unique_id=1417057300 node_paths=PackedStringArray("zone_container")]
+unique_name_in_owner = true
+script = ExtResource("4_entity_spawner")
+zone_container = NodePath("../../ZoneContainer")
+player_entity_scene = ExtResource("5_player_entity")
+remote_entity_scene = ExtResource("6_remote_entity")
+
+[node name="ZoneContainer" type="Node" parent="." unique_id=1803723499]
+unique_name_in_owner = true
+script = ExtResource("7_zone_container")
+
+[node name="BootstrapCamera3D" type="Camera3D" parent="." unique_id=1486390207]
+transform = Transform3D(0.70710677, -0.40824828, 0.57735026, 0, 0.81649655, 0.57735026, -0.70710677, -0.40824828, 0.57735026, -45, 18, -45)
+current = true

@@ -1,0 +1,86 @@
+[gd_scene format=3 uid="uid://pav0nj5nw87x"]
+
+[ext_resource type="PackedScene" uid="uid://cr4wbcxys3sav" path="res://projects/client/assets/models/characters/imports/Monk.gltf" id="1_k8ojy"]
+[ext_resource type="Script" uid="uid://c5ahtshs15dks" path="res://projects/client/src/entities/animation/MonkAnimationTree.gd" id="2_monk_tree"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_2n468"]
+animation = &"Idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_8cp3o"]
+animation = &"Run"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_ijb4o"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_55nq0"]
+xfade_time = 0.2
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() > .1"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_nx6lr"]
+xfade_time = 0.2
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() <= .1"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_k8ojy"]
+states/Idle/node = SubResource("AnimationNodeAnimation_2n468")
+states/Idle/position = Vector2(349, 100)
+states/Run/node = SubResource("AnimationNodeAnimation_8cp3o")
+states/Run/position = Vector2(487, 100)
+transitions = ["Start", "Idle", SubResource("AnimationNodeStateMachineTransition_ijb4o"), "Idle", "Run", SubResource("AnimationNodeStateMachineTransition_55nq0"), "Run", "Idle", SubResource("AnimationNodeStateMachineTransition_nx6lr")]
+graph_offset = Vector2(-223, -20)
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_kb63m"]
+graph_offset = Vector2(-223, -20)
+nodes/Locomotion/node = SubResource("AnimationNodeStateMachine_k8ojy")
+nodes/Locomotion/position = Vector2(349, 100)
+node_connections = [&"output", 0, &"Locomotion"]
+
+[node name="BaseCharacter" unique_id=1199967037 instance=ExtResource("1_k8ojy")]
+
+[node name="CharacterArmature" parent="." index="0" unique_id=1673807515]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+
+[node name="GeneralSkeleton" parent="CharacterArmature" index="0" unique_id=69475431]
+bones/1/position = Vector3(0.20781448, 0.024662867, -0.045055524)
+bones/1/rotation = Quaternion(6.05945e-06, 0.7029519, 0.71123743, 5.7513603e-06)
+bones/2/position = Vector3(0.0021530592, 1.1068866, 0.07522918)
+bones/2/rotation = Quaternion(5.048882e-29, 6.311105e-30, 4.2351647e-22, 1)
+bones/3/position = Vector3(-0.0014799669, -0.11307926, -0.11569905)
+bones/3/rotation = Quaternion(2.842171e-14, 2.6469777e-22, 8.881774e-15, 1)
+bones/4/rotation = Quaternion(4.4703484e-08, -6.794565e-14, -8.881784e-14, 1)
+bones/6/rotation = Quaternion(8.47033e-22, 1.4099834e-13, 2.1316285e-14, 1)
+bones/7/rotation = Quaternion(-0.018727537, 4.9025776e-11, 6.0982604e-12, 0.9998247)
+bones/9/rotation = Quaternion(-0.4627269, -0.18641949, 0.19000132, 0.8455951)
+bones/10/rotation = Quaternion(-0.28364918, 0.20780428, -0.18034284, 0.91860604)
+bones/11/rotation = Quaternion(0.019800294, 0.01744268, -0.008522039, 0.9996155)
+bones/17/rotation = Quaternion(-0.44064796, 0.18541561, -0.1803785, 0.85960114)
+bones/18/rotation = Quaternion(-0.27540976, -0.21283732, 0.18048872, 0.9199313)
+bones/20/rotation = Quaternion(-0.06264137, 0.018810429, 0.00118081, 0.99785817)
+bones/23/rotation = Quaternion(-0.1710576, -0.08374459, 0.43297905, 0.8810535)
+bones/24/rotation = Quaternion(-0.078931764, 0.29791358, -0.14166291, 0.9407173)
+bones/25/position = Vector3(0.1954188, 0.018798038, -0.09142405)
+bones/25/rotation = Quaternion(0.99255985, 0.008460097, -0.00072888966, 0.12146105)
+bones/26/rotation = Quaternion(0.25292578, 0.0025010523, 0.0076941494, 0.9674519)
+bones/27/position = Vector3(-0.20403652, 0.018798085, -0.09142405)
+bones/27/rotation = Quaternion(0.9925596, -0.008460112, 0.00072886085, 0.12146336)
+bones/28/rotation = Quaternion(0.25292164, -0.0025010046, -0.0076941615, 0.96745294)
+bones/29/position = Vector3(0.20438434, 0.72453266, 0.9631467)
+bones/29/rotation = Quaternion(-2.980233e-08, 3.5762787e-07, -3.5527162e-15, 1)
+bones/30/position = Vector3(-0.21212608, 0.024662867, -0.045055524)
+bones/30/rotation = Quaternion(-5.9742315e-06, 0.7029519, 0.71123743, -5.7513603e-06)
+bones/31/rotation = Quaternion(-2.980233e-08, -3.5762787e-07, 1.7763573e-14, 1)
+
+[node name="Head" parent="CharacterArmature/GeneralSkeleton" index="0" unique_id=1569842720]
+transform = Transform3D(1, -1.3918958e-11, 9.795633e-11, 1.0240885e-11, 0.9992986, 0.037448414, -9.840886e-11, -0.037448414, 0.9992986, -0.000638377, 2.0856633, 0.08092588)
+
+[node name="AnimationPlayer" parent="." index="1" unique_id=1146940199]
+unique_name_in_owner = true
+
+[node name="AnimationTree" type="AnimationTree" parent="." index="3" unique_id=1104446349]
+unique_name_in_owner = true
+script = ExtResource("2_monk_tree")
+root_node = NodePath("%AnimationTree/..")
+tree_root = SubResource("AnimationNodeBlendTree_kb63m")
+advance_expression_base_node = NodePath("../AnimationPlayer")
+anim_player = NodePath("../AnimationPlayer")

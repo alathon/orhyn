@@ -1,0 +1,232 @@
+[gd_scene format=3 uid="uid://c7lpq7ox84ypc"]
+
+[ext_resource type="PackedScene" uid="uid://8xxsboql6dnl" path="res://projects/client/assets/models/npcs/imports/neutral_animals/Deer.gltf" id="1_ao330"]
+[ext_resource type="Script" uid="uid://dshmdcsqy0eya" path="res://projects/client/src/entities/animation/NeutralQuadrupedAnimationTree.gd" id="2_quadruped_tree"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_n63et"]
+radius = 1.1333008
+height = 4.4228516
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_0gfxd"]
+radius = 0.7817383
+height = 2.7548828
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_q_eat"]
+animation = &"Eating"
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_q_eat"]
+fadein_time = 0.08
+fadeout_time = 0.18
+
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_q_eat"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_q_attack"]
+animation = &"Attack_Headbutt"
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_q_attack"]
+fadein_time = 0.06
+fadeout_time = 0.12
+
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_q_attack"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_q_hit"]
+animation = &"Idle_HitReact1"
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_q_hit"]
+fadein_time = 0.05
+fadeout_time = 0.12
+
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_q_hit"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_q_idle"]
+animation = &"Idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_q_jump"]
+animation = &"Jump_toIdle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_q_run"]
+animation = &"Gallop"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_q_walk"]
+animation = &"Walk"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_q_start_idle"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_q_idle_walk"]
+xfade_time = 0.15
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() > .2 and body.velocity.length() <= 5.0"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_q_idle_run"]
+xfade_time = 0.15
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() > 5.0"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_q_idle_jump"]
+xfade_time = 0.08
+advance_mode = 2
+advance_expression = "not body.is_on_floor()"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_q_walk_idle"]
+xfade_time = 0.15
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() <= .2"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_q_walk_run"]
+xfade_time = 0.15
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() > 5.0"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_q_walk_jump"]
+xfade_time = 0.08
+advance_mode = 2
+advance_expression = "not body.is_on_floor()"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_q_run_idle"]
+xfade_time = 0.15
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() <= .2"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_q_run_walk"]
+xfade_time = 0.15
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() > .2 and body.velocity.length() <= 5.0"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_q_run_jump"]
+xfade_time = 0.08
+advance_mode = 2
+advance_expression = "not body.is_on_floor()"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_q_jump_idle"]
+xfade_time = 0.12
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() <= .2"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_q_jump_walk"]
+xfade_time = 0.12
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() > .2 and body.velocity.length() <= 5.0"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_q_jump_run"]
+xfade_time = 0.12
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() > 5.0"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_q_locomotion"]
+states/Idle/node = SubResource("AnimationNodeAnimation_q_idle")
+states/Idle/position = Vector2(260, 80)
+states/Jump/node = SubResource("AnimationNodeAnimation_q_jump")
+states/Jump/position = Vector2(460, 260)
+states/Run/node = SubResource("AnimationNodeAnimation_q_run")
+states/Run/position = Vector2(660, 80)
+states/Start/position = Vector2(117, 80)
+states/Walk/node = SubResource("AnimationNodeAnimation_q_walk")
+states/Walk/position = Vector2(460, 80)
+transitions = ["Start", "Idle", SubResource("AnimationNodeStateMachineTransition_q_start_idle"), "Idle", "Walk", SubResource("AnimationNodeStateMachineTransition_q_idle_walk"), "Idle", "Run", SubResource("AnimationNodeStateMachineTransition_q_idle_run"), "Idle", "Jump", SubResource("AnimationNodeStateMachineTransition_q_idle_jump"), "Walk", "Idle", SubResource("AnimationNodeStateMachineTransition_q_walk_idle"), "Walk", "Run", SubResource("AnimationNodeStateMachineTransition_q_walk_run"), "Walk", "Jump", SubResource("AnimationNodeStateMachineTransition_q_walk_jump"), "Run", "Idle", SubResource("AnimationNodeStateMachineTransition_q_run_idle"), "Run", "Walk", SubResource("AnimationNodeStateMachineTransition_q_run_walk"), "Run", "Jump", SubResource("AnimationNodeStateMachineTransition_q_run_jump"), "Jump", "Idle", SubResource("AnimationNodeStateMachineTransition_q_jump_idle"), "Jump", "Walk", SubResource("AnimationNodeStateMachineTransition_q_jump_walk"), "Jump", "Run", SubResource("AnimationNodeStateMachineTransition_q_jump_run")]
+graph_offset = Vector2(-120, -80)
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_q_root"]
+nodes/output/position = Vector2(1380, 120)
+nodes/Locomotion/node = SubResource("AnimationNodeStateMachine_q_locomotion")
+nodes/Locomotion/position = Vector2(40, 80)
+nodes/HitReactAnimation/node = SubResource("AnimationNodeAnimation_q_hit")
+nodes/HitReactAnimation/position = Vector2(80, 300)
+nodes/HitReactTimeScale/node = SubResource("AnimationNodeTimeScale_q_hit")
+nodes/HitReactTimeScale/position = Vector2(360, 300)
+nodes/HitReactOneShot/node = SubResource("AnimationNodeOneShot_q_hit")
+nodes/HitReactOneShot/position = Vector2(520, 120)
+nodes/AttackAnimation/node = SubResource("AnimationNodeAnimation_q_attack")
+nodes/AttackAnimation/position = Vector2(480, 360)
+nodes/AttackTimeScale/node = SubResource("AnimationNodeTimeScale_q_attack")
+nodes/AttackTimeScale/position = Vector2(760, 360)
+nodes/AttackOneShot/node = SubResource("AnimationNodeOneShot_q_attack")
+nodes/AttackOneShot/position = Vector2(860, 120)
+nodes/AmbientEatAnimation/node = SubResource("AnimationNodeAnimation_q_eat")
+nodes/AmbientEatAnimation/position = Vector2(820, 420)
+nodes/AmbientEatTimeScale/node = SubResource("AnimationNodeTimeScale_q_eat")
+nodes/AmbientEatTimeScale/position = Vector2(1100, 420)
+nodes/AmbientEatOneShot/node = SubResource("AnimationNodeOneShot_q_eat")
+nodes/AmbientEatOneShot/position = Vector2(1200, 120)
+node_connections = [&"output", 0, &"AmbientEatOneShot", &"HitReactTimeScale", 0, &"HitReactAnimation", &"HitReactOneShot", 0, &"Locomotion", &"HitReactOneShot", 1, &"HitReactTimeScale", &"AttackTimeScale", 0, &"AttackAnimation", &"AttackOneShot", 0, &"HitReactOneShot", &"AttackOneShot", 1, &"AttackTimeScale", &"AmbientEatTimeScale", 0, &"AmbientEatAnimation", &"AmbientEatOneShot", 0, &"AttackOneShot", &"AmbientEatOneShot", 1, &"AmbientEatTimeScale"]
+
+[node name="Deer2" unique_id=1181791495 instance=ExtResource("1_ao330")]
+
+[node name="AnimalArmature" parent="." index="0" unique_id=1735842153]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+
+[node name="GeneralSkeleton" parent="AnimalArmature" index="0" unique_id=884350527]
+bones/0/position = Vector3(0, 0.7239828, 0.0042358455)
+bones/0/rotation = Quaternion(-0.0011437193, 0, 0, 0.9999994)
+bones/1/rotation = Quaternion(0.7869396, -6.344836e-07, -8.113766e-07, 0.61703)
+bones/3/rotation = Quaternion(0.06031786, -2.0027755e-05, -1.4883797e-06, 0.9981792)
+bones/4/rotation = Quaternion(0.22428764, 1.95236e-05, -5.539664e-06, 0.974523)
+bones/5/rotation = Quaternion(0.32654265, -0.015153293, -0.02722389, 0.9446688)
+bones/6/rotation = Quaternion(0.023657082, -0.0015408512, -0.009842713, 0.9996705)
+bones/7/rotation = Quaternion(0.047151264, 0.00012394876, 0.00045089604, 0.99888766)
+bones/8/rotation = Quaternion(-0.6438366, 0.021988183, -0.041093476, 0.7637423)
+bones/10/rotation = Quaternion(0.16375285, 0.6964594, 0.15201119, 0.6819252)
+bones/11/rotation = Quaternion(-0.028002966, 0.020936867, -0.014193598, 0.9992878)
+bones/12/rotation = Quaternion(0.006141998, 0.07460476, -0.10078928, 0.99208766)
+bones/15/rotation = Quaternion(-0.028002936, -0.02093685, 0.014193585, 0.9992878)
+bones/16/rotation = Quaternion(0.0061419313, -0.074604794, 0.100789264, 0.99208766)
+bones/17/position = Vector3(-0.17718446, 0.97093326, -0.35883495)
+bones/18/rotation = Quaternion(0.74970543, 0.6574609, 0.049721915, 0.05669822)
+bones/19/rotation = Quaternion(3.0790432e-07, 0.98833483, 0.15229714, 2.195355e-06)
+bones/20/rotation = Quaternion(0.46396938, 0.5290422, 0.53419596, -0.4684887)
+bones/21/rotation = Quaternion(0.7497067, -0.65746176, -0.049709182, 0.056683604)
+bones/22/rotation = Quaternion(-2.8501066e-07, 0.98833555, 0.15229231, -1.9597153e-06)
+bones/23/rotation = Quaternion(0.5894709, 0.5211761, 0.41449922, -0.4572635)
+bones/24/rotation = Quaternion(0.7364848, 0.6609531, 0.09595195, 0.10735188)
+bones/25/rotation = Quaternion(0.61486197, -8.92234e-05, 0.0008166734, 0.7886343)
+bones/26/rotation = Quaternion(-0.0004032865, 0.8451785, -0.5344841, -0.0002510762)
+bones/27/rotation = Quaternion(0.5894702, -0.521177, -0.41450053, -0.4572623)
+bones/28/rotation = Quaternion(0.7364848, -0.660953, -0.09595193, 0.10735183)
+bones/29/rotation = Quaternion(0.6148846, 8.974618e-05, -0.00082179933, 0.78861666)
+bones/30/rotation = Quaternion(0.00040384868, 0.8451747, -0.53449017, 0.0002514344)
+bones/31/rotation = Quaternion(0.96775424, -2.3589551e-07, -1.1115499e-06, -0.2518963)
+bones/32/rotation = Quaternion(-0.59352773, -1.2269263e-08, 9.7663055e-08, 0.80481356)
+bones/33/rotation = Quaternion(-0.4362658, -0.12018885, -0.12038598, 0.88359165)
+bones/39/rotation = Quaternion(4.3538013e-09, 0.9998002, 0.01998961, -7.548282e-08)
+bones/45/rotation = Quaternion(-1.9173488e-08, 0.9998002, 0.019989625, -3.1385372e-07)
+
+[node name="BoneAttachment3D" type="BoneAttachment3D" parent="AnimalArmature/GeneralSkeleton" index="1" unique_id=1607459464]
+transform = Transform3D(-1, -1.4271109e-09, 4.472363e-05, 4.4722405e-05, -0.007406689, 0.99997246, 3.2982962e-07, 0.99997205, 0.007406749, 3.5388953e-10, 2.2810056, 0.07311958)
+bone_name = "Torso2"
+bone_idx = 3
+
+[node name="TargetCollider" type="Area3D" parent="AnimalArmature/GeneralSkeleton/BoneAttachment3D" index="0" unique_id=815314550]
+unique_name_in_owner = true
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AnimalArmature/GeneralSkeleton/BoneAttachment3D/TargetCollider" index="0" unique_id=1321286779]
+transform = Transform3D(1, -1.2466916e-07, 8.230738e-11, 1.2466998e-07, 1.0000021, 0.0027875854, -1.392344e-10, -0.0027875537, 1.0000021, -1.2160592e-05, 0.11795507, -0.2719047)
+shape = SubResource("CapsuleShape3D_n63et")
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="AnimalArmature/GeneralSkeleton/BoneAttachment3D/TargetCollider" index="1" unique_id=1119607474]
+transform = Transform3D(1, 4.0181432e-05, -2.5262703e-05, -4.027879e-05, 0.43687797, -0.89952344, -2.5107407e-05, 0.8995231, 0.43687797, 3.246798e-05, 1.4445096, 0.72391677)
+shape = SubResource("CapsuleShape3D_0gfxd")
+
+[node name="AnimationPlayer" parent="." index="1" unique_id=604545525]
+unique_name_in_owner = true
+
+[node name="AnimationTree" type="AnimationTree" parent="." index="2" unique_id=298683001]
+unique_name_in_owner = true
+root_node = NodePath("%AnimationTree/..")
+tree_root = SubResource("AnimationNodeBlendTree_q_root")
+advance_expression_base_node = NodePath("..")
+anim_player = NodePath("../AnimationPlayer")
+parameters/HitReactTimeScale/scale = 1.0
+parameters/HitReactOneShot/active = false
+parameters/HitReactOneShot/internal_active = false
+parameters/HitReactOneShot/request = 0
+parameters/AttackTimeScale/scale = 1.0
+parameters/AttackOneShot/active = false
+parameters/AttackOneShot/internal_active = false
+parameters/AttackOneShot/request = 0
+parameters/AmbientEatTimeScale/scale = 1.0
+parameters/AmbientEatOneShot/active = false
+parameters/AmbientEatOneShot/internal_active = false
+parameters/AmbientEatOneShot/request = 0
+script = ExtResource("2_quadruped_tree")

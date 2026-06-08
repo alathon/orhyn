@@ -2,7 +2,7 @@ class_name MovementSnapshotSystem
 extends BaseSystem
 
 @export var player_input_buffers: PlayerInputBuffers
-@export var network: GameServerAPI
+@export var network: GameServerNetwork
 @export var systems: TickSystems
 
 func _on_tick(tick: int, _delta: float):

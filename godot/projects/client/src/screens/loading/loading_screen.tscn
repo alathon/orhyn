@@ -1,0 +1,113 @@
+[gd_scene format=3 uid="uid://2mcck72wn0xp"]
+
+[ext_resource type="Script" uid="uid://5f7pq0u2o3tm" path="res://projects/client/src/screens/loading/loading_screen.gd" id="1_loading_screen"]
+[ext_resource type="Texture2D" uid="uid://dl1r514d4k3dn" path="res://projects/client/assets/ui/images/screens/orhyn_loading_screen.png" id="2_background"]
+[ext_resource type="FontFile" uid="uid://c2rgxmcaeym6o" path="res://projects/client/assets/ui/fonts/Cinzel-SemiBold.ttf" id="3_heading_font"]
+[ext_resource type="FontFile" uid="uid://c7lq7uw1qu31q" path="res://projects/client/assets/ui/fonts/Cinzel-Regular.ttf" id="4_body_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_background"]
+bg_color = Color(0.005, 0.006, 0.01, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.08, 0.09, 0.12, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill"]
+bg_color = Color(0.32, 0.18, 0.82, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.7, 0.62, 1, 1)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+
+[node name="LoadingScreen" type="Control" unique_id=1640547985]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_loading_screen")
+background_texture = ExtResource("2_background")
+loading_tip_text = "TIP: DON'T TRUST PIERCE"
+
+[node name="BackgroundColor" type="ColorRect" parent="." unique_id=1789684379]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="BackgroundTexture" type="TextureRect" parent="." unique_id=1496102488]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_background")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="ProgressLayout" type="VBoxContainer" parent="." unique_id=1627038540]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.125
+anchor_top = 0.78
+anchor_right = 0.875
+anchor_bottom = 0.89
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="TipLabel" type="Label" parent="ProgressLayout" unique_id=837489005]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.83, 0.78, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("3_heading_font")
+theme_override_font_sizes/font_size = 18
+text = "TIP: DON'T TRUST PIERCE"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ProgressBar" type="ProgressBar" parent="ProgressLayout" unique_id=805554224]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_progress_background")
+theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill")
+step = 0.1
+show_percentage = false
+
+[node name="StatusLabel" type="Label" parent="ProgressLayout" unique_id=407966088]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.68, 0.65, 0.72, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("4_body_font")
+theme_override_font_sizes/font_size = 16
+text = "LOADING ..."
+horizontal_alignment = 1

@@ -11,7 +11,7 @@
 [ext_resource type="Script" uid="uid://b4tkplvh7fq40" path="res://addons/sky_3d/src/SkyDome.gd" id="9_gddq1"]
 [ext_resource type="Script" uid="uid://cjmkcj8hwm7ts" path="res://addons/sky_3d/src/TimeOfDay.gd" id="10_1h7aj"]
 [ext_resource type="PackedScene" uid="uid://bbq26ed8sucn3" path="res://projects/zones/assets/environment/scenes/outdoors/Birch_2.tscn" id="11_mrcwu"]
-[ext_resource type="Script" uid="uid://ddphh3r4qyiyb" path="res://projects/common/src/ZoneBorder.gd" id="13_0fxk5"]
+[ext_resource type="Script" uid="uid://ddphh3r4qyiyb" path="res://projects/common/src/zone_border.gd" id="13_0fxk5"]
 [ext_resource type="Script" uid="uid://dbndw8p05yam7" path="res://addons/terrain_3d/utils/terrain_3d_objects.gd" id="13_e65mr"]
 [ext_resource type="Terrain3DMaterial" uid="uid://by5ot07hlxw0q" path="res://projects/zones/zone_forest/terrain/zone_forest_3d_material.tres" id="13_mrcwu"]
 [ext_resource type="Terrain3DAssets" uid="uid://bgqag4pdt8cwi" path="res://projects/zones/zone_forest/terrain/zone_forest_3d_assets.tres" id="14_e65mr"]

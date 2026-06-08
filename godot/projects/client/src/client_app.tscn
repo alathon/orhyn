@@ -1,38 +1,39 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bjtdpmn4j76b0"]
 
-[ext_resource type="Script" path="res://projects/client/src/client_app.gd" id="1_client_app"]
-[ext_resource type="Script" path="res://projects/client/src/client_flow_state.gd" id="2_flow_state"]
-[ext_resource type="PackedScene" path="res://projects/client/src/screens/login_screen.tscn" id="3_login"]
-[ext_resource type="PackedScene" path="res://projects/client/src/screens/character_select_screen.tscn" id="4_character_select"]
-[ext_resource type="PackedScene" path="res://projects/client/src/screens/ingame_screen.tscn" id="5_ingame"]
-[ext_resource type="PackedScene" path="res://projects/client/src/screens/loading_screen.tscn" id="6_loading"]
-[ext_resource type="Script" path="res://projects/client/src/client_loading_coordinator.gd" id="7_loading_coordinator"]
-[ext_resource type="Script" path="res://projects/client/src/client_orchestrator_client.gd" id="8_orchestrator_client"]
-[ext_resource type="Script" path="res://projects/client/src/zone_entry_flow.gd" id="9_zone_entry_flow"]
+[ext_resource type="Script" uid="uid://dgdrgd2i4cgg7" path="res://projects/client/src/client_app.gd" id="1_client_app"]
+[ext_resource type="PackedScene" uid="uid://dnp1yuf3h3xaw" path="res://projects/client/src/screens/login/login_screen.tscn" id="3_login"]
+[ext_resource type="PackedScene" uid="uid://bu7h6mi5filaq" path="res://projects/client/src/screens/character_select/character_select_screen.tscn" id="4_character_select"]
+[ext_resource type="PackedScene" uid="uid://ljrqooiomv11" path="res://projects/client/src/screens/ingame/ingame_screen.tscn" id="5_ingame"]
+[ext_resource type="PackedScene" uid="uid://2mcck72wn0xp" path="res://projects/client/src/screens/loading/loading_screen.tscn" id="6_loading"]
+[ext_resource type="Script" uid="uid://nf1twhh7kelj" path="res://projects/client/src/api/orchestrator_api.gd" id="8_orchestrator_api"]
+[ext_resource type="Script" uid="uid://mf3x2oe5m4vr" path="res://projects/client/src/api/zone_connection_manager.gd" id="9_zone_connection_manager"]
+[ext_resource type="Script" path="res://projects/client/src/screens/screen_manager.gd" id="10_screen_manager"]
 
-[node name="ClientApp" type="Node"]
+[node name="ClientApp" type="Node" unique_id=1970517494]
 script = ExtResource("1_client_app")
 login_scene = ExtResource("3_login")
 character_select_scene = ExtResource("4_character_select")
 loading_scene = ExtResource("6_loading")
 ingame_scene = ExtResource("5_ingame")
 
-[node name="ClientFlowState" type="Node" parent="."]
+[node name="ScreenManager" type="Node" parent="." unique_id=1036444055]
 unique_name_in_owner = true
-script = ExtResource("2_flow_state")
-
-[node name="ClientLoadingCoordinator" type="Node" parent="."]
-unique_name_in_owner = true
-script = ExtResource("7_loading_coordinator")
-
-[node name="ClientOrchestratorClient" type="Node" parent="."]
-unique_name_in_owner = true
-script = ExtResource("8_orchestrator_client")
-
-[node name="ZoneEntryFlow" type="Node" parent="."]
-unique_name_in_owner = true
-script = ExtResource("9_zone_entry_flow")
+script = ExtResource("10_screen_manager")
+login_scene = ExtResource("3_login")
+character_select_scene = ExtResource("4_character_select")
+loading_scene = ExtResource("6_loading")
 ingame_scene = ExtResource("5_ingame")
 
-[node name="ScreenContainer" type="Node" parent="."]
+[node name="OrchestratorAPI" type="Node" parent="." unique_id=2094194615]
+unique_name_in_owner = true
+script = ExtResource("8_orchestrator_api")
+
+[node name="ZoneConnectionManager" type="Node" parent="." unique_id=617409198]
+unique_name_in_owner = true
+script = ExtResource("9_zone_connection_manager")
+
+[node name="ScreenContainer" type="Node" parent="." unique_id=550443774]
+unique_name_in_owner = true
+
+[node name="OverlayContainer" type="Node" parent="." unique_id=608651599]
 unique_name_in_owner = true

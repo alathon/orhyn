@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://drt7o4vcdutmn"]
+
+[ext_resource type="Script" uid="uid://c7hneo1fqcp5r" path="res://projects/client/src/entities/remote/remote_entity.gd" id="1_y7ke5"]
+[ext_resource type="Script" uid="uid://ckn385bdji0od" path="res://projects/client/src/entities/remote/remote_body.gd" id="2_dajna"]
+[ext_resource type="Script" uid="uid://ceueav1yv38x2" path="res://projects/client/src/entities/remote/remote_interpolation_buffer.gd" id="3_un4g1"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_l2lw7"]
+
+[node name="RemoteEntity" type="Node" unique_id=611564784]
+script = ExtResource("1_y7ke5")
+
+[node name="Body" type="Node3D" parent="." unique_id=1923091188]
+unique_name_in_owner = true
+script = ExtResource("2_dajna")
+
+[node name="Model" type="Node3D" parent="." unique_id=1195157045]
+unique_name_in_owner = true
+
+[node name="Mesh" type="MeshInstance3D" parent="Model" unique_id=2130454875]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_l2lw7")
+
+[node name="RemoteInterpolationBuffer" type="Node" parent="." unique_id=1277255548]
+unique_name_in_owner = true
+script = ExtResource("3_un4g1")

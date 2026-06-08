@@ -1,0 +1,201 @@
+[gd_scene format=3 uid="uid://d2n5t1sc832b5"]
+
+[ext_resource type="PackedScene" uid="uid://co6do1cit315w" path="res://projects/client/assets/models/npcs/imports/goblin/Goblin_Female.gltf" id="1_6uyv7"]
+[ext_resource type="Script" uid="uid://bb381ac4v8vpo" path="res://projects/client/src/entities/animation/GoblinAnimationTree.gd" id="2_goblin_tree"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_f_hit"]
+animation = &"RecieveHit"
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_f_hit"]
+fadein_time = 0.05
+fadeout_time = 0.12
+
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_f_hit"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_f_idle"]
+animation = &"Idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_f_jump"]
+animation = &"Jump"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_f_run"]
+animation = &"Run"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_f_walk"]
+animation = &"Walk"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_f_start_idle"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_f_idle_walk"]
+xfade_time = 0.15
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() > .2 and body.velocity.length() <= 5.0"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_f_idle_run"]
+xfade_time = 0.15
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() > 5.0"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_f_idle_jump"]
+xfade_time = 0.08
+advance_mode = 2
+advance_expression = "not body.is_on_floor()"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_f_walk_idle"]
+xfade_time = 0.15
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() <= .2"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_f_walk_run"]
+xfade_time = 0.15
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() > 5.0"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_f_walk_jump"]
+xfade_time = 0.08
+advance_mode = 2
+advance_expression = "not body.is_on_floor()"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_f_run_idle"]
+xfade_time = 0.15
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() <= .2"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_f_run_walk"]
+xfade_time = 0.15
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() > .2 and body.velocity.length() <= 5.0"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_f_run_jump"]
+xfade_time = 0.08
+advance_mode = 2
+advance_expression = "not body.is_on_floor()"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_f_jump_idle"]
+xfade_time = 0.12
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() <= .2"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_f_jump_walk"]
+xfade_time = 0.12
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() > .2 and body.velocity.length() <= 5.0"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_f_jump_run"]
+xfade_time = 0.12
+advance_mode = 2
+advance_expression = "body.is_on_floor() and body.velocity.length() > 5.0"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_f_locomotion"]
+states/Idle/node = SubResource("AnimationNodeAnimation_f_idle")
+states/Idle/position = Vector2(260, 80)
+states/Jump/node = SubResource("AnimationNodeAnimation_f_jump")
+states/Jump/position = Vector2(460, 260)
+states/Run/node = SubResource("AnimationNodeAnimation_f_run")
+states/Run/position = Vector2(660, 80)
+states/Walk/node = SubResource("AnimationNodeAnimation_f_walk")
+states/Walk/position = Vector2(460, 80)
+transitions = ["Start", "Idle", SubResource("AnimationNodeStateMachineTransition_f_start_idle"), "Idle", "Walk", SubResource("AnimationNodeStateMachineTransition_f_idle_walk"), "Idle", "Run", SubResource("AnimationNodeStateMachineTransition_f_idle_run"), "Idle", "Jump", SubResource("AnimationNodeStateMachineTransition_f_idle_jump"), "Walk", "Idle", SubResource("AnimationNodeStateMachineTransition_f_walk_idle"), "Walk", "Run", SubResource("AnimationNodeStateMachineTransition_f_walk_run"), "Walk", "Jump", SubResource("AnimationNodeStateMachineTransition_f_walk_jump"), "Run", "Idle", SubResource("AnimationNodeStateMachineTransition_f_run_idle"), "Run", "Walk", SubResource("AnimationNodeStateMachineTransition_f_run_walk"), "Run", "Jump", SubResource("AnimationNodeStateMachineTransition_f_run_jump"), "Jump", "Idle", SubResource("AnimationNodeStateMachineTransition_f_jump_idle"), "Jump", "Walk", SubResource("AnimationNodeStateMachineTransition_f_jump_walk"), "Jump", "Run", SubResource("AnimationNodeStateMachineTransition_f_jump_run")]
+graph_offset = Vector2(-120, -80)
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_f_punch_finish"]
+animation = &"Punch"
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_f_punch_finish"]
+fadein_time = 0.04
+fadeout_time = 0.12
+
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_f_punch_finish"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_f_punch_start"]
+animation = &"Punch"
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_f_punch_start"]
+fadein_time = 0.06
+fadeout_time = 0.12
+
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_f_punch_start"]
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_kbsx4"]
+graph_offset = Vector2(-120, -80)
+nodes/output/position = Vector2(1380, 120)
+nodes/Locomotion/node = SubResource("AnimationNodeStateMachine_f_locomotion")
+nodes/Locomotion/position = Vector2(40, 80)
+nodes/HitReactAnimation/node = SubResource("AnimationNodeAnimation_f_hit")
+nodes/HitReactAnimation/position = Vector2(80, 300)
+nodes/HitReactTimeScale/node = SubResource("AnimationNodeTimeScale_f_hit")
+nodes/HitReactTimeScale/position = Vector2(360, 300)
+nodes/HitReactOneShot/node = SubResource("AnimationNodeOneShot_f_hit")
+nodes/HitReactOneShot/position = Vector2(520, 120)
+nodes/PunchStartAnimation/node = SubResource("AnimationNodeAnimation_f_punch_start")
+nodes/PunchStartAnimation/position = Vector2(480, 360)
+nodes/PunchStartTimeScale/node = SubResource("AnimationNodeTimeScale_f_punch_start")
+nodes/PunchStartTimeScale/position = Vector2(760, 360)
+nodes/PunchStartOneShot/node = SubResource("AnimationNodeOneShot_f_punch_start")
+nodes/PunchStartOneShot/position = Vector2(860, 120)
+nodes/PunchFinishAnimation/node = SubResource("AnimationNodeAnimation_f_punch_finish")
+nodes/PunchFinishAnimation/position = Vector2(820, 420)
+nodes/PunchFinishTimeScale/node = SubResource("AnimationNodeTimeScale_f_punch_finish")
+nodes/PunchFinishTimeScale/position = Vector2(1100, 420)
+nodes/PunchFinishOneShot/node = SubResource("AnimationNodeOneShot_f_punch_finish")
+nodes/PunchFinishOneShot/position = Vector2(1200, 120)
+node_connections = [&"output", 0, &"PunchFinishOneShot", &"HitReactTimeScale", 0, &"HitReactAnimation", &"HitReactOneShot", 0, &"Locomotion", &"HitReactOneShot", 1, &"HitReactTimeScale", &"PunchStartTimeScale", 0, &"PunchStartAnimation", &"PunchStartOneShot", 0, &"HitReactOneShot", &"PunchStartOneShot", 1, &"PunchStartTimeScale", &"PunchFinishTimeScale", 0, &"PunchFinishAnimation", &"PunchFinishOneShot", 0, &"PunchStartOneShot", &"PunchFinishOneShot", 1, &"PunchFinishTimeScale"]
+
+[node name="BaseCharacter" unique_id=1684303314 instance=ExtResource("1_6uyv7")]
+
+[node name="CharacterArmature" parent="." index="0" unique_id=2120918485]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+
+[node name="GeneralSkeleton" parent="CharacterArmature" index="0" unique_id=1250429724]
+bones/1/position = Vector3(0.2654247, 0.02466287, -0.04505551)
+bones/1/rotation = Quaternion(5.367105e-06, 0.7029519, 0.71123743, 5.164773e-06)
+bones/2/position = Vector3(0.0023266666, 0.998074, 0.027051695)
+bones/2/rotation = Quaternion(0.00038046765, -0.00200303, -1.825499e-05, 0.999998)
+bones/3/rotation = Quaternion(3.3178646e-09, -2.3274269e-10, 2.2737365e-13, 1)
+bones/4/rotation = Quaternion(-1.1175928e-08, -2.728484e-12, 1.4551915e-11, 1)
+bones/5/rotation = Quaternion(-0.0028748119, 0.07853855, -0.04772835, 0.9957638)
+bones/6/rotation = Quaternion(-0.014441554, -0.0014038654, -0.0023006997, 0.9998922)
+bones/7/rotation = Quaternion(-6.9849193e-10, -5.820766e-11, -3.8417056e-09, 1)
+bones/9/rotation = Quaternion(-0.5263862, 0.28221342, -0.19034973, 0.7791278)
+bones/10/rotation = Quaternion(-0.03804395, 0.22458364, -0.12795778, 0.96526766)
+bones/11/rotation = Quaternion(0.012451602, 0.029540034, -0.0067970846, 0.99946296)
+bones/13/rotation = Quaternion(-0.6344381, -0.1799799, 0.09609961, 0.7455605)
+bones/14/rotation = Quaternion(-0.038043898, -0.22458358, 0.12795773, 0.9652677)
+bones/15/rotation = Quaternion(0.011377593, -0.15603994, 0.009574941, 0.9876388)
+bones/16/position = Vector3(0.2527242, -0.01674783, -0.05727208)
+bones/16/rotation = Quaternion(0.9937349, 0.010609214, -0.0033560854, 0.11120795)
+bones/16/scale = Vector3(0.9999976, 0.9999964, 0.9999504)
+bones/17/rotation = Quaternion(0.21468797, 0.0024119483, 0.009529557, 0.97663325)
+bones/17/scale = Vector3(1.0000007, 1.0000128, 1.0000099)
+bones/18/position = Vector3(-0.25500956, -0.01687992, -0.05453173)
+bones/18/rotation = Quaternion(0.99377847, -0.010231352, -0.0007025991, 0.11090264)
+bones/18/scale = Vector3(0.9999979, 0.99999636, 0.9999506)
+bones/19/rotation = Quaternion(0.2146554, -0.002411587, -0.009529635, 0.97664046)
+bones/19/scale = Vector3(1.0000013, 1.0000123, 1.0000095)
+bones/21/position = Vector3(-0.2628017, 0.024662875, -0.04505551)
+bones/21/rotation = Quaternion(-5.479574e-06, 0.70295197, 0.7112374, -5.1647717e-06)
+bones/22/position = Vector3(-0.25937167, 0.72453266, 0.9631467)
+
+[node name="AnimationPlayer" parent="." index="1" unique_id=2127796256]
+unique_name_in_owner = true
+
+[node name="AnimationTree" type="AnimationTree" parent="." index="2" unique_id=1762171262]
+unique_name_in_owner = true
+script = ExtResource("2_goblin_tree")
+root_node = NodePath("%AnimationTree/..")
+tree_root = SubResource("AnimationNodeBlendTree_kbsx4")
+advance_expression_base_node = NodePath("..")
+anim_player = NodePath("../AnimationPlayer")
+parameters/HitReactTimeScale/scale = 1.0
+parameters/HitReactOneShot/active = false
+parameters/HitReactOneShot/internal_active = false
+parameters/HitReactOneShot/request = 0
+parameters/PunchStartTimeScale/scale = 1.0
+parameters/PunchStartOneShot/active = false
+parameters/PunchStartOneShot/internal_active = false
+parameters/PunchStartOneShot/request = 0
+parameters/PunchFinishTimeScale/scale = 1.0
+parameters/PunchFinishOneShot/active = false
+parameters/PunchFinishOneShot/internal_active = false
+parameters/PunchFinishOneShot/request = 0

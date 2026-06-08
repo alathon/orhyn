@@ -1,7 +1,7 @@
 class_name PlayerInputBuffers
 extends Node
 
-@export var network: GameServerAPI
+@export var network: GameServerNetwork
 @export var entity_tracker: EntityTracker
 
 func _ready() -> void:

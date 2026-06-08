@@ -2,7 +2,7 @@ class_name TickSystems
 extends Node
 
 @export var entity_tracker: EntityTracker
-@export var game_server_api: GameServerAPI
+@export var game_server_api: GameServerNetwork
 @export_category("Tick systems")
 @export var player_inputs_system: PlayerInputsSystem
 @export var player_movement_system: PlayerMovementSystem

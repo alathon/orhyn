@@ -4,7 +4,7 @@ extends Node
 const RECONNECT_INTERVAL: float = 3.0
 
 @export var _config: GameServerConfig
-@export var _network: GameServerAPI
+@export var _network: GameServerNetwork
 
 var _socket: WebSocketPeer = WebSocketPeer.new()
 var _reconnect_timer: float = 0.0
