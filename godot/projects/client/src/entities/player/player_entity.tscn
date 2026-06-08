@@ -41,10 +41,10 @@ metadata/_custom_type_script = "uid://bse8le1fndpvu"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_l2lw7")
 
-[node name="ModelContainer" type="Node3D" parent="." unique_id=870417014]
+[node name="ModelContainer" type="Node3D" parent="." unique_id=870417014 node_paths=PackedStringArray("entity_root_node")]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 script = ExtResource("6_qeoow")
+entity_root_node = NodePath("..")
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=505127271 node_paths=PackedStringArray("body", "model")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.692643, 4.7698765)
