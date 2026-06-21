@@ -7,7 +7,7 @@ extends BaseEntity
 @onready var model_manager: ModelManager = %ModelContainer
 @onready var camera_pivot: Node3D = $CameraPivot
 
-const tmp_wizard_scene: PackedScene = preload("res://projects/client/assets/models/characters/scenes/Wizard.tscn")
+const tmp_wizard_scene: PackedScene = preload("uid://dvj64bdlnoc46")
 
 func _ready():
 	# TODO: Temporary

@@ -1,4 +1,5 @@
-$ProjectPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectPath = Split-Path -Parent $ScriptPath
 
 Add-Type -AssemblyName System.Windows.Forms
 

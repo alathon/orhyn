@@ -1,4 +1,5 @@
-$ProjectPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectPath = Split-Path -Parent $ScriptPath
 $Headless = $false
 $ZoneArgs = @()
 
@@ -63,4 +64,12 @@ else
 $GodotArgs += @("--scene", "res://projects/game-server/src/main.tscn", "--")
 $GodotArgs += $ZoneArgs
 
-& godot @GodotArgs
+Push-Location $ProjectPath
+try
+{
+    & godot @GodotArgs
+}
+finally
+{
+    Pop-Location
+}

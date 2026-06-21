@@ -1,4 +1,5 @@
-$ProjectPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectPath = Split-Path -Parent $ScriptPath
 $Headless = $false
 
 foreach ($Arg in $args)
@@ -55,7 +56,7 @@ function New-GodotZoneArgs
 }
 
 $PowerShell = Get-PowerShellExecutable
-$OrchestratorScript = Join-Path $ProjectPath "run_orchestrator.ps1"
+$OrchestratorScript = Join-Path $ScriptPath "run_orchestrator.ps1"
 $OrchestratorArgs = @(
     "-NoProfile",
     "-ExecutionPolicy", "Bypass",

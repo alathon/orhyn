@@ -1,4 +1,5 @@
-$ProjectPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectPath = Split-Path -Parent $ScriptPath
 $OrchestratorPath = Join-Path $ProjectPath "orchestrator"
 $BuildPath = Join-Path $OrchestratorPath ".bin"
 $ExePath = Join-Path $BuildPath "orchestrator.exe"
