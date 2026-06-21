@@ -7,25 +7,33 @@
 [ext_resource type="PackedScene" uid="uid://hn8q3dj44yod" path="res://projects/client/src/entities/player/player_entity.tscn" id="5_player_entity"]
 [ext_resource type="PackedScene" uid="uid://drt7o4vcdutmn" path="res://projects/client/src/entities/remote/remote_entity.tscn" id="6_remote_entity"]
 [ext_resource type="Script" uid="uid://dcmh1ni873f7k" path="res://projects/client/src/client_zone_container.gd" id="7_zone_container"]
+[ext_resource type="Script" path="res://projects/common/src/game_events/game_event_bus.gd" id="8_game_event_bus"]
 
-[node name="IngameScreen" type="Node3D" unique_id=239629701 node_paths=PackedStringArray("api", "zone_container")]
+[node name="IngameScreen" type="Node3D" unique_id=239629701 node_paths=PackedStringArray("api", "zone_container", "game_events")]
 script = ExtResource("1_ingame_screen")
 api = NodePath("GameSystems/API")
 zone_container = NodePath("ZoneContainer")
+game_events = NodePath("GameSystems/GameEvents")
 
 [node name="GameSystems" type="Node" parent="." unique_id=1368878515]
 unique_name_in_owner = true
 script = ExtResource("2_game_systems")
 
-[node name="API" type="Node" parent="GameSystems" unique_id=1829278941]
+[node name="GameEvents" type="Node" parent="GameSystems"]
+unique_name_in_owner = true
+script = ExtResource("8_game_event_bus")
+
+[node name="API" type="Node" parent="GameSystems" unique_id=1829278941 node_paths=PackedStringArray("game_events")]
 unique_name_in_owner = true
 script = ExtResource("3_api")
 auto_connect = false
+game_events = NodePath("../GameEvents")
 
-[node name="EntitySpawner" type="Node" parent="GameSystems" unique_id=1417057300 node_paths=PackedStringArray("zone_container")]
+[node name="EntitySpawner" type="Node" parent="GameSystems" unique_id=1417057300 node_paths=PackedStringArray("zone_container", "game_events")]
 unique_name_in_owner = true
 script = ExtResource("4_entity_spawner")
 zone_container = NodePath("../../ZoneContainer")
+game_events = NodePath("../GameEvents")
 player_entity_scene = ExtResource("5_player_entity")
 remote_entity_scene = ExtResource("6_remote_entity")
 

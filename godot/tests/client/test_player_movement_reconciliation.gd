@@ -3,7 +3,7 @@ extends GutTest
 const TEST_DELTA: float = 0.05
 
 func test_player_scene_wires_reconciliation_component() -> void:
-	var scene: PackedScene = load("res://projects/client/src/player_entity.tscn") as PackedScene
+	var scene: PackedScene = load("res://projects/client/src/entities/player/player_entity.tscn") as PackedScene
 	var player: Player = add_child_autoqfree(scene.instantiate()) as Player
 	var reconciliation: PlayerMovementReconciliation = player.get_movement_reconciliation()
 

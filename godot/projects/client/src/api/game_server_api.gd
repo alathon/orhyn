@@ -4,8 +4,6 @@ extends Node
 signal server_connected
 signal server_connection_failed(reason: String)
 signal movement_snapshot_received(snapshot: MovementSnapshotMsg)
-signal entity_lifecycle_received(lifecycle: EntityLifecycleMsg)
-signal character_loaded_received(message: CharacterLoadedMsg)
 
 const DEFAULT_SERVER_HOST: String = "127.0.0.1"
 const DEFAULT_SERVER_PORT: int = 4242
@@ -16,6 +14,7 @@ const CHANNEL_ZONE_SESSION: int = 3
 const CHANNEL_COUNT: int = 4
 
 @export var auto_connect: bool = true
+@export var game_events: GameEventBus
 
 var _connection: ENetConnection
 var _server_peer: ENetPacketPeer
@@ -129,14 +128,7 @@ func poll() -> void:
 			ENetConnection.EVENT_RECEIVE:
 				var peer: ENetPacketPeer = event[1]
 				var channel: int = event[3]
-				if channel == CHANNEL_MOVEMENT_SNAPSHOT:
-					_receive_movement_snapshot(peer.get_packet())
-				elif channel == CHANNEL_ENTITY_LIFECYCLE:
-					_receive_entity_lifecycle(peer.get_packet())
-				elif channel == CHANNEL_ZONE_SESSION:
-					_receive_character_loaded(peer.get_packet())
-				else:
-					peer.get_packet()
+				ClientProtocolRouter.route(channel, peer.get_packet(), self, game_events)
 
 func _disconnect() -> void:
 	if _connection != null:
@@ -144,33 +136,8 @@ func _disconnect() -> void:
 	_connection = null
 	_server_peer = null
 
-func _receive_movement_snapshot(bytes: PackedByteArray) -> void:
-	var snapshot: MovementSnapshotMsg = MovementSnapshotMsg.decode(bytes)
+func publish_movement_snapshot(snapshot: MovementSnapshotMsg) -> void:
 	if snapshot.entities.is_empty():
 		return
 
 	movement_snapshot_received.emit(snapshot)
-
-func _receive_entity_lifecycle(bytes: PackedByteArray) -> void:
-	var lifecycle: EntityLifecycleMsg = EntityLifecycleMsg.decode(bytes)
-
-	if (
-		lifecycle.entities_spawned.is_empty()
-		and lifecycle.entities_despawned.is_empty()
-		and lifecycle.controlled_entity_id == EntityLifecycleMsg.NO_ENTITY_ID
-	):
-		return
-
-	entity_lifecycle_received.emit(lifecycle)
-
-func _receive_character_loaded(bytes: PackedByteArray) -> void:
-	var message: CharacterLoadedMsg = CharacterLoadedMsg.decode(bytes)
-	if message.character_id <= 0 or message.entity_id <= 0:
-		push_warning("Dropped malformed character_loaded packet")
-		return
-
-	print(
-		"Client received character_loaded: character_id=%d entity_id=%d zone=%s" %
-		[message.character_id, message.entity_id, message.zone_id]
-	)
-	character_loaded_received.emit(message)

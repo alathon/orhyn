@@ -4,9 +4,8 @@ extends Node
 signal entity_spawned(entity: BaseEntity)
 signal entity_despawned(entity_id: int)
 
-@onready var api: GameServerAPI = %API
-
 @export var zone_container: ClientZoneContainer
+@export var game_events: GameEventBus
 @export var player_entity_scene: PackedScene
 @export var remote_entity_scene: PackedScene
 
@@ -19,7 +18,13 @@ var local_entity_id: int:
 		return _local_player_id
 
 func _ready() -> void:
-	api.entity_lifecycle_received.connect(_on_entity_lifecycle_received)
+	if game_events != null:
+		game_events.subscribe(GameEvent.TYPE_CONTROLLED_ENTITY_ASSIGNED, _on_controlled_entity_assigned)
+		game_events.subscribe(GameEvent.TYPE_ENTITY_DESPAWNED, _on_entity_despawned)
+		game_events.subscribe(GameEvent.TYPE_ENTITY_SPAWNED, _on_entity_spawned)
+	else:
+		push_warning("ClientEntitySpawner has no GameEventBus assigned.")
+
 	if zone_container == null:
 		push_warning("ClientEntitySpawner has no zone_container assigned.")
 		return
@@ -27,6 +32,13 @@ func _ready() -> void:
 	zone_container.zone_loaded.connect(_on_zone_loaded)
 	if zone_container.loaded_entities != null:
 		_set_entities_container(zone_container.loaded_entities)
+
+func _exit_tree() -> void:
+	if game_events == null:
+		return
+	game_events.unsubscribe(GameEvent.TYPE_CONTROLLED_ENTITY_ASSIGNED, _on_controlled_entity_assigned)
+	game_events.unsubscribe(GameEvent.TYPE_ENTITY_DESPAWNED, _on_entity_despawned)
+	game_events.unsubscribe(GameEvent.TYPE_ENTITY_SPAWNED, _on_entity_spawned)
 
 func get_local_player() -> Player:
 	return _local_player
@@ -37,22 +49,21 @@ func get_player(entity_id: int) -> BaseEntity:
 func get_players() -> Dictionary[int, BaseEntity]:
 	return entities
 
-func _on_entity_lifecycle_received(lifecycle: EntityLifecycleMsg) -> void:
-	if lifecycle.controlled_entity_id != EntityLifecycleMsg.NO_ENTITY_ID:
-		_set_local_player_id(lifecycle.controlled_entity_id)
+func _on_controlled_entity_assigned(event: ControlledEntityAssignedGameEvent) -> void:
+	_set_local_player_id(event.entity_id)
 
-	for despawn in lifecycle.entities_despawned:
-		despawn_entity(despawn.entity_id)
+func _on_entity_despawned(event: EntityDespawnedGameEvent) -> void:
+	despawn_entity(event.entity_id)
 
-	for spawn in lifecycle.entities_spawned:
-		spawn_entity(spawn)
+func _on_entity_spawned(event: EntitySpawnedGameEvent) -> void:
+	spawn_entity(event)
 
-func spawn_entity(spawn: EntityLifecycleMsg.SpawnRecord) -> BaseEntity:
+func spawn_entity(spawn: EntitySpawnedGameEvent) -> BaseEntity:
 	if entities_container == null:
 		push_warning("Cannot spawn entity before a zone Entities node is loaded.")
 		return null
 
-	if spawn.entity_kind != EntityLifecycleMsg.EntityKind.Player:
+	if spawn.entity_kind != EntitySpawnedGameEvent.ENTITY_KIND_PLAYER:
 		push_warning("Ignoring unknown entity kind in spawn: %d" % spawn.entity_kind)
 		return null
 
@@ -85,7 +96,7 @@ func _set_local_player_id(entity_id: int) -> void:
 
 	_local_player_id = entity_id
 
-func _spawn_local_player(spawn: EntityLifecycleMsg.SpawnRecord) -> Player:
+func _spawn_local_player(spawn: EntitySpawnedGameEvent) -> Player:
 	if _local_player != null:
 		_apply_spawn_transform(_local_player, spawn)
 		return _local_player
@@ -109,7 +120,7 @@ func _spawn_local_player(spawn: EntityLifecycleMsg.SpawnRecord) -> Player:
 	entity_spawned.emit(player)
 	return player
 
-func _spawn_remote_entity(spawn: EntityLifecycleMsg.SpawnRecord) -> RemoteEntity:
+func _spawn_remote_entity(spawn: EntitySpawnedGameEvent) -> RemoteEntity:
 	var entity_id: int = spawn.entity_id
 	var existing: RemoteEntity = entities.get(entity_id) as RemoteEntity
 	if existing != null:
@@ -128,7 +139,7 @@ func _spawn_remote_entity(spawn: EntityLifecycleMsg.SpawnRecord) -> RemoteEntity
 	entity_spawned.emit(remote)
 	return remote
 
-func _apply_spawn_transform(entity: BaseEntity, spawn: EntityLifecycleMsg.SpawnRecord) -> void:
+func _apply_spawn_transform(entity: BaseEntity, spawn: EntitySpawnedGameEvent) -> void:
 	var position: Vector3 = spawn.position
 	var rotation: Quaternion = spawn.rotation
 	var body: Node3D = entity.get_body()

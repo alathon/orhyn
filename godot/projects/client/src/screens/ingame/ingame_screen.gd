@@ -7,6 +7,7 @@ signal ingame_loaded(zone_id: String, character: ClientLoadedCharacter)
 
 @export var api: GameServerAPI
 @export var zone_container: ClientZoneContainer
+@export var game_events: GameEventBus
 @export var dev_character_load_delay_seconds: float = 0.20
 @export var dev_entity_id: int = 1
 
@@ -20,8 +21,13 @@ var _waiting_for_server_character: bool = false
 
 func _ready() -> void:
 	zone_container.zone_loaded.connect(_on_zone_loaded)
-	if api != null:
-		api.character_loaded_received.connect(_on_character_loaded_received)
+	if game_events != null:
+		game_events.subscribe(GameEvent.TYPE_CHARACTER_LOADED, _on_character_loaded_received)
+
+func _exit_tree() -> void:
+	if game_events == null:
+		return
+	game_events.unsubscribe(GameEvent.TYPE_CHARACTER_LOADED, _on_character_loaded_received)
 
 func _on_zone_loaded(zone_id: String, _zone: Node, _entities: Node) -> void:
 	_loaded_zone_id = zone_id
@@ -69,17 +75,17 @@ func begin_character_load(character: ClientCharacterSummary = null, redirect: Cl
 	await get_tree().create_timer(dev_character_load_delay_seconds).timeout
 	_emit_dev_character_loaded()
 
-func _on_character_loaded_received(message: CharacterLoadedMsg) -> void:
+func _on_character_loaded_received(event: CharacterLoadedGameEvent) -> void:
 	if not _waiting_for_server_character:
 		return
 
 	_loaded_character = ClientLoadedCharacter.create(
-		message.character_id,
-		message.entity_id,
-		message.display_name,
-		message.zone_id,
-		message.model_name,
-		message.level
+		event.character_id,
+		event.entity_id,
+		event.display_name,
+		event.zone_id,
+		event.model_name,
+		event.level
 	)
 	_waiting_for_server_character = false
 	_load_in_progress = false
