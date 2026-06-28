@@ -5,6 +5,7 @@ extends BaseEntity
 @onready var input: PlayerInput = $PlayerInput
 @onready var movement_reconciliation: PlayerMovementReconciliation = $PlayerMovementReconciliation
 @onready var model_manager: ModelManager = %ModelContainer
+@onready var equipment: Equipment = $Equipment
 @onready var camera_pivot: Node3D = $CameraPivot
 
 const tmp_wizard_scene: PackedScene = preload("uid://dvj64bdlnoc46")

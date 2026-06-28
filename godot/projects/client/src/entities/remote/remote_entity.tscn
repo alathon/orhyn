@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://ckn385bdji0od" path="res://projects/client/src/entities/remote/remote_body.gd" id="2_dajna"]
 [ext_resource type="Script" uid="uid://13cvw8iw5t1i" path="res://projects/client/src/entities/model_manager.gd" id="3_sf381"]
 [ext_resource type="Script" uid="uid://ceueav1yv38x2" path="res://projects/client/src/entities/remote/remote_interpolation_buffer.gd" id="3_un4g1"]
+[ext_resource type="Script" uid="uid://lpux782rhrbm" path="res://projects/common/src/equipment/equipment.gd" id="4_equipment"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_l2lw7"]
 
@@ -14,13 +15,18 @@ script = ExtResource("1_y7ke5")
 unique_name_in_owner = true
 script = ExtResource("3_un4g1")
 
+[node name="Equipment" type="Node" parent="." unique_id=454831495]
+script = ExtResource("4_equipment")
+
 [node name="Body" type="Node3D" parent="." unique_id=1923091188]
 unique_name_in_owner = true
 script = ExtResource("2_dajna")
 
-[node name="Model" type="Node3D" parent="." unique_id=1195157045]
+[node name="Model" type="Node3D" parent="." unique_id=1195157045 node_paths=PackedStringArray("entity_root_node", "equipment")]
 unique_name_in_owner = true
 script = ExtResource("3_sf381")
+entity_root_node = NodePath("..")
+equipment = NodePath("../Equipment")
 
 [node name="Mesh" type="MeshInstance3D" parent="Model" unique_id=2130454875]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

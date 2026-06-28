@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://2ga0sfxbj7o4" path="res://projects/client/src/entities/player/smoothed_movement.gd" id="3_mu7t1"]
 [ext_resource type="Script" uid="uid://cx21mwf1sgs3l" path="res://projects/client/src/entities/player/player_movement_reconciliation.gd" id="4_kc0s5"]
 [ext_resource type="Script" uid="uid://13cvw8iw5t1i" path="res://projects/client/src/entities/model_manager.gd" id="6_qeoow"]
+[ext_resource type="Script" uid="uid://lpux782rhrbm" path="res://projects/common/src/equipment/equipment.gd" id="7_equipment"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_l2lw7"]
 
@@ -32,6 +33,9 @@ debug_corrections = true
 body = NodePath("../PhysicsBody")
 player_input = NodePath("../PlayerInput")
 
+[node name="Equipment" type="Node" parent="." unique_id=333980454]
+script = ExtResource("7_equipment")
+
 [node name="PhysicsBody" type="CharacterBody3D" parent="." unique_id=275065207]
 collision_mask = 2
 script = ExtResource("1_df33t")
@@ -41,10 +45,11 @@ metadata/_custom_type_script = "uid://bse8le1fndpvu"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_l2lw7")
 
-[node name="ModelContainer" type="Node3D" parent="." unique_id=870417014 node_paths=PackedStringArray("entity_root_node")]
+[node name="ModelContainer" type="Node3D" parent="." unique_id=870417014 node_paths=PackedStringArray("entity_root_node", "equipment")]
 unique_name_in_owner = true
 script = ExtResource("6_qeoow")
 entity_root_node = NodePath("..")
+equipment = NodePath("../Equipment")
 
 [node name="CameraPivot" type="Node3D" parent="." unique_id=505127271 node_paths=PackedStringArray("body", "model")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.692643, 4.7698765)

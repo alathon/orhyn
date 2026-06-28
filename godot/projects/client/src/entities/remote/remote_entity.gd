@@ -2,6 +2,7 @@ class_name RemoteEntity
 extends BaseEntity
 
 @onready var body: RemoteBody = %Body
+@onready var equipment: Equipment = $Equipment
 @onready var interpolation_buffer: RemoteInterpolationBuffer = %RemoteInterpolationBuffer
 
 func get_rid() -> RID:

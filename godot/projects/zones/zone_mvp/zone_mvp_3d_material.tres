@@ -3,19 +3,19 @@
 [resource]
 _shader_parameters = {
 &"auto_base_texture": 0,
-&"auto_height_reduction": null,
-&"auto_overlay_texture": 5,
-&"auto_slope": null,
-&"bias_distance": null,
-&"blend_sharpness": null,
-&"depth_blur": null,
-&"flat_terrain_normals": null,
-&"ground_level": null,
-&"mipmap_bias": null,
-&"region_blend": null,
+&"auto_height_reduction": 0.1,
+&"auto_overlay_texture": 1,
+&"auto_slope": 1.0,
+&"bias_distance": 512.0,
+&"blend_sharpness": 0.5,
+&"depth_blur": 0.0,
+&"flat_terrain_normals": false,
+&"ground_level": -20.0,
+&"mipmap_bias": 1.0,
+&"region_blend": 0.25,
 &"shader_uniforms": null,
-&"shader_uniforms::auto_shader": null,
-&"shader_uniforms::general": null,
-&"shader_uniforms::mipmaps": null
+&"shader_uniforms/auto_shader": null,
+&"shader_uniforms/general": null,
+&"shader_uniforms/mipmaps": null
 }
 auto_shader_enabled = true
