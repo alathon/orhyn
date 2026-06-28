@@ -8,6 +8,10 @@ static func route(message_type: int, bytes: PackedByteArray, game_events: GameEv
 			var lifecycle: EntityLifecycleMsg = EntityLifecycleMsg.decode(bytes)
 			EntityLifecycleEventSource.publish(lifecycle, game_events)
 			return OK
+		MessageHeaders.EntityEquipmentChangedMsgHeader:
+			var equipment_changed: EntityEquipmentChangedMsg = EntityEquipmentChangedMsg.decode(bytes)
+			EntityEquipmentEventSource.publish(equipment_changed, game_events)
+			return OK
 		_:
 			push_error("Unhandled gameplay protocol message_type=%d" % message_type)
 			return ERR_INVALID_DATA

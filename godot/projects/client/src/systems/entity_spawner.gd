@@ -21,6 +21,7 @@ func _ready() -> void:
 	if game_events != null:
 		game_events.subscribe(GameEvent.TYPE_CONTROLLED_ENTITY_ASSIGNED, _on_controlled_entity_assigned)
 		game_events.subscribe(GameEvent.TYPE_ENTITY_DESPAWNED, _on_entity_despawned)
+		game_events.subscribe(GameEvent.TYPE_ENTITY_EQUIPMENT_CHANGED, _on_entity_equipment_changed)
 		game_events.subscribe(GameEvent.TYPE_ENTITY_SPAWNED, _on_entity_spawned)
 	else:
 		push_warning("ClientEntitySpawner has no GameEventBus assigned.")
@@ -38,6 +39,7 @@ func _exit_tree() -> void:
 		return
 	game_events.unsubscribe(GameEvent.TYPE_CONTROLLED_ENTITY_ASSIGNED, _on_controlled_entity_assigned)
 	game_events.unsubscribe(GameEvent.TYPE_ENTITY_DESPAWNED, _on_entity_despawned)
+	game_events.unsubscribe(GameEvent.TYPE_ENTITY_EQUIPMENT_CHANGED, _on_entity_equipment_changed)
 	game_events.unsubscribe(GameEvent.TYPE_ENTITY_SPAWNED, _on_entity_spawned)
 
 func get_local_player() -> Player:
@@ -57,6 +59,12 @@ func _on_entity_despawned(event: EntityDespawnedGameEvent) -> void:
 
 func _on_entity_spawned(event: EntitySpawnedGameEvent) -> void:
 	spawn_entity(event)
+
+func _on_entity_equipment_changed(event: EntityEquipmentChangedGameEvent) -> void:
+	var entity: BaseEntity = entities.get(event.entity_id)
+	if entity == null:
+		return
+	_apply_equipment_changes(entity, event.changes, event.equipment_revision)
 
 func spawn_entity(spawn: EntitySpawnedGameEvent) -> BaseEntity:
 	if entities_container == null:
@@ -115,6 +123,7 @@ func _spawn_local_player(spawn: EntitySpawnedGameEvent) -> Player:
 
 	_local_player = player
 	entities[_local_player_id] = player
+	_apply_equipment_snapshot(player, spawn.equipment_entries, spawn.equipment_revision)
 
 	print("Spawned local player entity=%d" % _local_player_id)
 	entity_spawned.emit(player)
@@ -134,10 +143,61 @@ func _spawn_remote_entity(spawn: EntitySpawnedGameEvent) -> RemoteEntity:
 	entities_container.add_child(remote)
 	_apply_spawn_transform(remote, spawn)
 	entities[entity_id] = remote
+	_apply_equipment_snapshot(remote, spawn.equipment_entries, spawn.equipment_revision)
 
 	print("Spawned remote player entity=%d" % entity_id)
 	entity_spawned.emit(remote)
 	return remote
+
+func _apply_equipment_snapshot(
+		entity: BaseEntity,
+		equipment_entries: Array[Dictionary],
+		equipment_revision: int) -> void:
+	var equipment: Equipment = _get_entity_equipment(entity)
+	if equipment == null:
+		return
+	equipment.apply_snapshot_entries(equipment_entries, equipment_revision)
+
+func _apply_equipment_changes(
+		entity: BaseEntity,
+		changes: Array[Dictionary],
+		equipment_revision: int) -> void:
+	var equipment: Equipment = _get_entity_equipment(entity)
+	if equipment == null:
+		return
+
+	for change: Dictionary in changes:
+		var slot_id: Equippable.SlotId = int(change.get("slot_id", 0))
+		var operation: int = int(change.get("operation", EntityEquipmentChangedMsg.OPERATION_UNSET))
+		match operation:
+			EntityEquipmentChangedMsg.OPERATION_SET:
+				var item: EquippableItem = _make_equipment_item(change)
+				if item != null:
+					equipment.set_equipped(item, slot_id)
+			EntityEquipmentChangedMsg.OPERATION_UNSET:
+				equipment.unset_equipped(slot_id)
+			_:
+				push_warning("Ignoring unknown equipment operation: %d" % operation)
+	equipment.revision = equipment_revision
+
+func _make_equipment_item(entry: Dictionary) -> EquippableItem:
+	var template_path: String = str(entry.get("template_resource_path", ""))
+	var template: ItemTemplate = ResourceLoader.load(template_path) as ItemTemplate
+	if template == null:
+		push_warning("Equipment item template could not be loaded: %s" % template_path)
+		return null
+	return EquippableItem.create(
+		template,
+		1,
+		str(entry.get("item_instance_id", ""))
+	)
+
+func _get_entity_equipment(entity: BaseEntity) -> Equipment:
+	if entity is Player:
+		return (entity as Player).equipment
+	if entity is RemoteEntity:
+		return (entity as RemoteEntity).equipment
+	return null
 
 func _apply_spawn_transform(entity: BaseEntity, spawn: EntitySpawnedGameEvent) -> void:
 	var position: Vector3 = spawn.position

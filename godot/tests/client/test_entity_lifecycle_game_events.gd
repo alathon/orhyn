@@ -20,6 +20,12 @@ func test_entity_lifecycle_source_publishes_ordered_game_events() -> void:
 	spawn.entity_kind = EntityLifecycleMsg.EntityKind.Player
 	spawn.position = Vector3(1.0, 2.0, 3.0)
 	spawn.rotation = Quaternion(0.0, 0.0, 0.0, 1.0)
+	spawn.equipment_revision = 4
+	spawn.equipment_entries = [{
+		"slot_id": Equippable.SlotId.Right_Hand,
+		"item_instance_id": "weapon_1",
+		"template_resource_path": "res://items/sword.tres",
+	}]
 
 	var lifecycle: EntityLifecycleMsg = EntityLifecycleMsg.new()
 	lifecycle.controlled_entity_id = 7
@@ -47,6 +53,27 @@ func test_entity_lifecycle_source_publishes_ordered_game_events() -> void:
 	assert_eq(spawned.entity_id, 7)
 	assert_eq(spawned.entity_kind, EntitySpawnedGameEvent.ENTITY_KIND_PLAYER)
 	assert_eq(spawned.position, Vector3(1.0, 2.0, 3.0))
+	assert_eq(spawned.equipment_revision, 4)
+	assert_eq(spawned.equipment_entries[0].get("item_instance_id"), "weapon_1")
+
+
+func test_equipment_changed_source_publishes_game_event() -> void:
+	var bus: GameEventBus = autofree(GameEventBus.new()) as GameEventBus
+	bus.subscribe(GameEvent.TYPE_ENTITY_EQUIPMENT_CHANGED, _record_event)
+
+	var message: EntityEquipmentChangedMsg = EntityEquipmentChangedMsg.create(7, 4, [{
+		"slot_id": Equippable.SlotId.Right_Hand,
+		"operation": EntityEquipmentChangedMsg.OPERATION_UNSET,
+	}])
+
+	EntityEquipmentEventSource.publish(message, bus)
+
+	assert_eq(_received.size(), 1)
+	assert_true(_received[0] is EntityEquipmentChangedGameEvent)
+	var event: EntityEquipmentChangedGameEvent = _received[0] as EntityEquipmentChangedGameEvent
+	assert_eq(event.entity_id, 7)
+	assert_eq(event.equipment_revision, 4)
+	assert_eq(event.changes[0].get("operation"), EntityEquipmentChangedMsg.OPERATION_UNSET)
 
 
 func test_entity_lifecycle_source_ignores_empty_messages() -> void:

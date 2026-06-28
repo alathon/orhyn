@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "diffity-diff": {
+      "source": "nilbuild/diffity",
+      "sourceType": "github",
+      "skillPath": "skills/diffity-diff/SKILL.md",
+      "computedHash": "bc475ebbd20f5270444db1ec78c9949f6f55392b5a38bca00242cd088b0322ee"
+    },
+    "diffity-resolve": {
+      "source": "nilbuild/diffity",
+      "sourceType": "github",
+      "skillPath": "skills/diffity-resolve/SKILL.md",
+      "computedHash": "c01686d05a236824f773dd97114eb5a1d9ceff0c587eec4dac3036cf02b8fbc5"
+    },
+    "diffity-review": {
+      "source": "nilbuild/diffity",
+      "sourceType": "github",
+      "skillPath": "skills/diffity-review/SKILL.md",
+      "computedHash": "04fde217ea47203212b2dc525cec668f5341415d00eb5eca622a5397b62573eb"
+    }
+  }
+}

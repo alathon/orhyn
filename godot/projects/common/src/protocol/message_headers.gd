@@ -6,3 +6,4 @@ const MovementSnapshotMsgHeader: int = 0xC8
 const EntityLifecycleMsgHeader: int = 0xC9
 const ZoneLoginRequestMsgHeader: int = 0xCA
 const CharacterLoadedMsgHeader: int = 0xCB
+const EntityEquipmentChangedMsgHeader: int = 0xCC

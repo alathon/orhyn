@@ -48,6 +48,31 @@ func test_routes_character_loaded_packets_to_game_events() -> void:
 	assert_eq(event.entity_id, 22)
 
 
+func test_routes_entity_equipment_changed_packets_to_game_events() -> void:
+	var bus: GameEventBus = autofree(GameEventBus.new()) as GameEventBus
+	bus.subscribe(GameEvent.TYPE_ENTITY_EQUIPMENT_CHANGED, _record_event)
+
+	var err: Error = ClientProtocolRouter.route(
+		GameServerAPI.CHANNEL_ENTITY_LIFECYCLE,
+		EntityEquipmentChangedMsg.encode(7, 3, [{
+			"slot_id": Equippable.SlotId.Right_Hand,
+			"operation": EntityEquipmentChangedMsg.OPERATION_SET,
+			"item_instance_id": "weapon_1",
+			"template_resource_path": "res://items/sword.tres",
+		}]),
+		null,
+		bus
+	)
+
+	assert_eq(err, OK)
+	assert_eq(_received_events.size(), 1)
+	assert_true(_received_events[0] is EntityEquipmentChangedGameEvent)
+	var event: EntityEquipmentChangedGameEvent = _received_events[0] as EntityEquipmentChangedGameEvent
+	assert_eq(event.entity_id, 7)
+	assert_eq(event.equipment_revision, 3)
+	assert_eq(event.changes[0].get("item_instance_id"), "weapon_1")
+
+
 func test_routes_movement_snapshot_packets_to_api_signal() -> void:
 	var api: GameServerAPI = autofree(GameServerAPI.new()) as GameServerAPI
 	api.movement_snapshot_received.connect(_record_snapshot)

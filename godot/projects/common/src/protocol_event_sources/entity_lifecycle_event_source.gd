@@ -33,6 +33,8 @@ static func publish(lifecycle: EntityLifecycleMsg, game_events: GameEventBus) ->
 			_to_game_event_entity_kind(spawn.entity_kind),
 			spawn.position,
 			spawn.rotation,
+			spawn.equipment_revision,
+			spawn.equipment_entries,
 			GameEvent.Source.SERVER_AUTHORITATIVE
 		))
 

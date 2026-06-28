@@ -6,7 +6,8 @@ const TYPE_CONTROLLED_ENTITY_ASSIGNED: int = 1
 const TYPE_ENTITY_SPAWNED: int = 2
 const TYPE_ENTITY_DESPAWNED: int = 3
 const TYPE_CHARACTER_LOADED: int = 4
-const TYPE_COUNT: int = 5
+const TYPE_ENTITY_EQUIPMENT_CHANGED: int = 5
+const TYPE_COUNT: int = 6
 
 enum Source {
 	UNKNOWN,

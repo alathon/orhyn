@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://byq7muhg2aten" path="res://projects/game-server/src/entities/player/server_player_entity.gd" id="1_dnu26"]
 [ext_resource type="Script" uid="uid://bse8le1fndpvu" path="res://projects/common/src/entities/physics_body.gd" id="1_m4u6d"]
 [ext_resource type="Script" uid="uid://c8d6r7xkvtq6k" path="res://projects/game-server/src/entities/player/player_input_buffer.gd" id="2_ea5tu"]
+[ext_resource type="Script" uid="uid://lpux782rhrbm" path="res://projects/common/src/equipment/equipment.gd" id="4_equipment"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_l2lw7"]
 
@@ -13,6 +14,9 @@ script = ExtResource("1_dnu26")
 
 [node name="InputBuffer" type="Node" parent="." unique_id=1878317140]
 script = ExtResource("2_ea5tu")
+
+[node name="Equipment" type="Node" parent="."]
+script = ExtResource("4_equipment")
 
 [node name="Body" type="CharacterBody3D" parent="." unique_id=2084136788]
 collision_mask = 2

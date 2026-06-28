@@ -5,6 +5,7 @@ signal slot_changed(slot_id: Equippable.SlotId, previous_item: EquippableItem, c
 signal changed()
 
 var _equipment: Dictionary[Equippable.SlotId, EquippableItem]
+var revision: int = 0
 
 func can_equip(item: EquippableItem, slot_id: Equippable.SlotId) -> bool:
 	# For now, we just check that slot_id is legal for the item.
@@ -34,6 +35,7 @@ func get_equipped_slots() -> Array[int]:
 func set_equipped(item: EquippableItem, slot_id: Equippable.SlotId) -> EquippableItem:
 	var existing: EquippableItem = get_equipped(slot_id)
 	_equipment.set(slot_id, item)
+	revision += 1
 	slot_changed.emit(slot_id, existing, item)
 	changed.emit()
 	return existing
@@ -45,6 +47,7 @@ func unset_equipped(slot_id: Equippable.SlotId) -> EquippableItem:
 	if existing == null:
 		return null
 	_equipment.erase(slot_id)
+	revision += 1
 	slot_changed.emit(slot_id, existing, null)
 	changed.emit()
 	return existing
@@ -58,6 +61,7 @@ func clear() -> void:
 		var previous_item: EquippableItem = get_equipped(slot_id)
 		_equipment.erase(slot_id)
 		slot_changed.emit(slot_id, previous_item, null)
+	revision += 1
 	changed.emit()
 
 
@@ -75,7 +79,7 @@ func get_snapshot_entries() -> Array[Dictionary]:
 	return entries
 
 
-func apply_snapshot_entries(entries: Array[Dictionary]) -> void:
+func apply_snapshot_entries(entries: Array[Dictionary], snapshot_revision: int = -1) -> void:
 	var desired_equipment: Dictionary[Equippable.SlotId, EquippableItem] = {}
 	for entry in entries:
 		var template_path: String = str(entry.get("template_resource_path", ""))
@@ -105,6 +109,9 @@ func apply_snapshot_entries(entries: Array[Dictionary]) -> void:
 		if _matches_equipped_snapshot(get_equipped(slot_id), desired_item):
 			continue
 		set_equipped(desired_item, slot_id)
+
+	if snapshot_revision >= 0:
+		revision = snapshot_revision
 
 
 func _matches_equipped_snapshot(current_item: EquippableItem, desired_item: EquippableItem) -> bool:

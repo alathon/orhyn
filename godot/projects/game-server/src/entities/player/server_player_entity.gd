@@ -4,6 +4,7 @@ extends BaseEntity
 @onready var body: PhysicsBody = $Body
 @onready var model: Node3D = %Model # TODO: Only keeping the model for now for debugging.
 @onready var input_buffer: PlayerInputBuffer = $InputBuffer
+@onready var equipment: Equipment = $Equipment
 
 var peer_id: int = -1
 

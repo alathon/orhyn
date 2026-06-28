@@ -135,6 +135,8 @@ func _make_spawn_record(player: ServerPlayerEntity) -> EntityLifecycleMsg.SpawnR
 	spawn.entity_kind = EntityLifecycleMsg.EntityKind.Player
 	spawn.position = body.global_position
 	spawn.rotation = body.global_transform.basis.get_rotation_quaternion()
+	spawn.equipment_revision = player.equipment.revision
+	spawn.equipment_entries = player.equipment.get_snapshot_entries()
 	return spawn
 
 func _on_zone_loaded(_zone_id: String, _zone: Node, zone_entities: Node) -> void:
