@@ -13,6 +13,7 @@
 [ext_resource type="Script" uid="uid://dsiw12ateagt5" path="res://projects/game-server/src/orchestrator_client.gd" id="13_sen3q"]
 [ext_resource type="Script" path="res://projects/game-server/src/zone_container.gd" id="14_g6rde"]
 [ext_resource type="Script" path="res://projects/editor/src/camera/free_look_camera.gd" id="15_kokf3"]
+[ext_resource type="Script" path="res://projects/game-server/src/equipment_request_handler.gd" id="16_equipment_requests"]
 
 [node name="GameServer" type="Node" unique_id=609377132]
 
@@ -49,6 +50,11 @@ zone_container = NodePath("../ZoneContainer")
 [node name="PlayerInputBuffers" type="Node" parent="." unique_id=339430637 node_paths=PackedStringArray("network", "entity_tracker")]
 unique_name_in_owner = true
 script = ExtResource("7_b73mu")
+network = NodePath("../Networking/GameServerAPI")
+entity_tracker = NodePath("../EntityTracker")
+
+[node name="EquipmentRequestHandler" type="Node" parent="." node_paths=PackedStringArray("network", "entity_tracker")]
+script = ExtResource("16_equipment_requests")
 network = NodePath("../Networking/GameServerAPI")
 entity_tracker = NodePath("../EntityTracker")
 

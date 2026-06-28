@@ -16,7 +16,7 @@ static func route(
 		GameServerAPI.CHANNEL_MOVEMENT_SNAPSHOT:
 			return ClientMovementProtocolRouter.route(message_type, bytes, api)
 		GameServerAPI.CHANNEL_ENTITY_LIFECYCLE:
-			return ClientGameplayProtocolRouter.route(message_type, bytes, game_events)
+			return ClientGameplayProtocolRouter.route(message_type, bytes, api, game_events)
 		GameServerAPI.CHANNEL_ZONE_SESSION:
 			return ClientZoneSessionProtocolRouter.route(message_type, bytes, game_events)
 		_:

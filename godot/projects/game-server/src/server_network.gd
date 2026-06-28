@@ -5,6 +5,7 @@ signal player_connected(peer_id: int)
 signal player_disconnected(peer_id: int)
 signal player_input_received(peer_id: int, input: MovementInputFrame)
 signal zone_login_received(peer_id: int, login: ZoneLoginRequestMsg)
+signal entity_equipment_action_requested(peer_id: int, request: EntityEquipmentActionRequestMsg)
 
 const CHANNEL_MOVEMENT: int = 0
 const CHANNEL_MOVEMENT_SNAPSHOT: int = 1
@@ -65,6 +66,8 @@ func _poll_network() -> void:
 					_receive_movement_input(peer)
 				elif event[3] == CHANNEL_ZONE_SESSION:
 					_receive_zone_login(peer)
+				elif event[3] == CHANNEL_ENTITY_LIFECYCLE:
+					_receive_entity_lifecycle_request(peer)
 
 func _receive_movement_input(peer: ENetPacketPeer) -> void:
 	var msg: MovementInputMsg = MovementInputMsg.decode(peer.get_packet())
@@ -89,6 +92,26 @@ func _receive_zone_login(peer: ENetPacketPeer) -> void:
 		[peer_id, login.character_id, login.transfer_token.length()]
 	)
 	zone_login_received.emit(peer_id, login)
+
+func _receive_entity_lifecycle_request(peer: ENetPacketPeer) -> void:
+	var bytes: PackedByteArray = peer.get_packet()
+	var peer_id: int = _get_peer_id(peer)
+	if bytes.is_empty():
+		push_warning("Dropped empty entity lifecycle request: peer=%d" % peer_id)
+		return
+
+	match bytes[0]:
+		MessageHeaders.EntityEquipmentActionRequestMsgHeader:
+			var request: EntityEquipmentActionRequestMsg = EntityEquipmentActionRequestMsg.decode(bytes)
+			if request.request_id <= 0:
+				push_warning("Dropped malformed equipment action request: peer=%d" % peer_id)
+				return
+			entity_equipment_action_requested.emit(peer_id, request)
+		_:
+			push_warning(
+				"Dropped unknown entity lifecycle request: peer=%d message_type=%d" %
+				[peer_id, bytes[0]]
+			)
 
 func _receive_movement_input_frame(peer_id: int, input: MovementInputFrame) -> void:
 	player_input_received.emit(peer_id, input)
@@ -172,6 +195,9 @@ func send_entity_lifecycle(peer_id: int, bytes: PackedByteArray) -> Error:
 	return peer.send(CHANNEL_ENTITY_LIFECYCLE, bytes, ENetPacketPeer.FLAG_RELIABLE)
 
 func send_entity_equipment_changed(peer_id: int, bytes: PackedByteArray) -> Error:
+	return send_entity_lifecycle(peer_id, bytes)
+
+func send_entity_equipment_action_result(peer_id: int, bytes: PackedByteArray) -> Error:
 	return send_entity_lifecycle(peer_id, bytes)
 
 func send_character_loaded(peer_id: int, bytes: PackedByteArray) -> Error:

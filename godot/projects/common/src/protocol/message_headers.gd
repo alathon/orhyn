@@ -7,3 +7,5 @@ const EntityLifecycleMsgHeader: int = 0xC9
 const ZoneLoginRequestMsgHeader: int = 0xCA
 const CharacterLoadedMsgHeader: int = 0xCB
 const EntityEquipmentChangedMsgHeader: int = 0xCC
+const EntityEquipmentActionRequestMsgHeader: int = 0xCD
+const EntityEquipmentActionResultMsgHeader: int = 0xCE

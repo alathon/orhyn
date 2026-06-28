@@ -2,11 +2,13 @@ extends GutTest
 
 var _received_events: Array[GameEvent] = []
 var _received_snapshot: MovementSnapshotMsg = null
+var _received_equipment_action_result: EntityEquipmentActionResultMsg = null
 
 
 func before_each() -> void:
 	_received_events.clear()
 	_received_snapshot = null
+	_received_equipment_action_result = null
 
 
 func test_routes_entity_lifecycle_packets_to_game_events() -> void:
@@ -94,12 +96,39 @@ func test_routes_movement_snapshot_packets_to_api_signal() -> void:
 	assert_eq(_received_snapshot.entities[0].entity_id, 9)
 
 
+func test_routes_equipment_action_result_packets_to_api_signal() -> void:
+	var api: GameServerAPI = autofree(GameServerAPI.new()) as GameServerAPI
+	api.equipment_action_result_received.connect(_record_equipment_action_result)
+
+	var err: Error = ClientProtocolRouter.route(
+		GameServerAPI.CHANNEL_ENTITY_LIFECYCLE,
+		EntityEquipmentActionResultMsg.encode(
+			18,
+			EntityEquipmentActionResultMsg.RESULT_OK,
+			7,
+			4
+		),
+		api,
+		null
+	)
+
+	assert_eq(err, OK)
+	assert_true(_received_equipment_action_result != null)
+	assert_eq(_received_equipment_action_result.request_id, 18)
+	assert_eq(_received_equipment_action_result.entity_id, 7)
+	assert_eq(_received_equipment_action_result.equipment_revision, 4)
+
+
 func _record_event(event: GameEvent) -> void:
 	_received_events.append(event)
 
 
 func _record_snapshot(snapshot: MovementSnapshotMsg) -> void:
 	_received_snapshot = snapshot
+
+
+func _record_equipment_action_result(result: EntityEquipmentActionResultMsg) -> void:
+	_received_equipment_action_result = result
 
 
 func _make_lifecycle_packet() -> PackedByteArray:

@@ -3,6 +3,7 @@ extends Node
 
 signal server_connected
 signal server_connection_failed(reason: String)
+signal equipment_action_result_received(result: EntityEquipmentActionResultMsg)
 signal movement_snapshot_received(snapshot: MovementSnapshotMsg)
 
 const DEFAULT_SERVER_HOST: String = "127.0.0.1"
@@ -18,6 +19,7 @@ const CHANNEL_COUNT: int = 4
 
 var _connection: ENetConnection
 var _server_peer: ENetPacketPeer
+var _next_equipment_action_request_id: int = 1
 
 func _ready() -> void:
 	if auto_connect:
@@ -94,6 +96,26 @@ func send_player_input(input: MovementInputFrame, previous_inputs: Array = []) -
 	var bytes: PackedByteArray = MovementInputMsg.encode(input, previous_inputs)
 	return _server_peer.send(CHANNEL_MOVEMENT, bytes, 0)
 
+func request_equip_item(
+		slot_id: Equippable.SlotId,
+		item_instance_id: String,
+		template_resource_path: String) -> int:
+	return request_equipment_actions([
+		EntityEquipmentActionRequestMsg.make_equip_action(
+			slot_id,
+			item_instance_id,
+			template_resource_path
+		),
+	])
+
+func request_unequip_slot(slot_id: Equippable.SlotId) -> int:
+	return request_equipment_actions([
+		EntityEquipmentActionRequestMsg.make_unequip_action(slot_id),
+	])
+
+func request_equipment_actions(actions: Array[Dictionary]) -> int:
+	return _send_equipment_action_request(actions)
+
 func disconnect_from_server() -> void:
 	if _server_peer != null and _server_peer.get_state() == ENetPacketPeer.STATE_CONNECTED:
 		_server_peer.peer_disconnect()
@@ -141,3 +163,28 @@ func publish_movement_snapshot(snapshot: MovementSnapshotMsg) -> void:
 		return
 
 	movement_snapshot_received.emit(snapshot)
+
+func publish_equipment_action_result(result: EntityEquipmentActionResultMsg) -> void:
+	if result.request_id <= 0:
+		return
+	equipment_action_result_received.emit(result)
+
+func _send_equipment_action_request(actions: Array[Dictionary]) -> int:
+	var err: Error = connect_to_server()
+	if err != OK:
+		return -1
+
+	poll()
+	if _server_peer == null or _server_peer.get_state() != ENetPacketPeer.STATE_CONNECTED:
+		return -1
+
+	var request_id: int = _next_equipment_action_request_id
+	_next_equipment_action_request_id += 1
+	var bytes: PackedByteArray = EntityEquipmentActionRequestMsg.encode(
+		request_id,
+		actions
+	)
+	err = _server_peer.send(CHANNEL_ENTITY_LIFECYCLE, bytes, ENetPacketPeer.FLAG_RELIABLE)
+	if err != OK:
+		return -1
+	return request_id
