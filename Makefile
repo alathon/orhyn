@@ -16,7 +16,7 @@ RUN_SERVER_AND_CLIENT = ./scripts/run_server_and_client.sh
 RUN_E2E = ./scripts/run_e2e.sh
 endif
 
-.PHONY: help orchestrator run-orchestrator run_orchestrator zone run-zone run_zone servers run-servers run_servers server-and-client server_and_client run-server-and-client run_server_and_client e2e e2e-impaired e2e-network-quality
+.PHONY: help orchestrator run-orchestrator run_orchestrator zone run-zone run_zone servers run-servers run_servers server-and-client server_and_client run-server-and-client run_server_and_client e2e e2e-impaired e2e-network-quality e2e-network-scale
 
 help:
 	@printf '%s\n' \
@@ -29,6 +29,8 @@ help:
 		'  make e2e-impaired' \
 		'  make e2e-network-quality              # headless (default)' \
 		'  make HEADLESS=0 e2e-network-quality   # show both clients' \
+		'  make e2e-network-scale                # 50 headless clients (default)' \
+		'  make HEADLESS=0 e2e-network-scale     # show low/high observers only' \
 		'' \
 		'Set GODOT_BIN or GO_BIN to override executable names on Unix-like systems.'
 
@@ -52,3 +54,6 @@ e2e-impaired:
 
 e2e-network-quality:
 	@HEADLESS=$(HEADLESS) ./scripts/run_e2e_network_quality.sh $(ARGS)
+
+e2e-network-scale:
+	@HEADLESS=$(HEADLESS) ./scripts/run_e2e_network_scale.sh $(ARGS)

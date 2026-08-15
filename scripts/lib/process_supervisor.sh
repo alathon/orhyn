@@ -28,7 +28,29 @@ supervisor_start() {
     supervisor_names+=("$name")
     supervisor_logs+=("$log_file")
 
-    echo "Started $name pid=$started_pid log=$log_file"
+	echo "Started $name pid=$started_pid log=$log_file"
+}
+
+supervisor_start_quiet() {
+	local name="$1"
+	local log_file="$2"
+	local workdir="$3"
+	shift 3
+
+	mkdir -p "$(dirname -- "$log_file")"
+	: >"$log_file"
+
+	(
+		cd "$workdir" || exit 1
+		exec "$@"
+	) >"$log_file" 2>&1 &
+
+	started_pid="$!"
+	supervisor_pids+=("$started_pid")
+	supervisor_names+=("$name")
+	supervisor_logs+=("$log_file")
+
+	echo "Started $name pid=$started_pid log=$log_file"
 }
 
 _supervisor_name_for_pid() {

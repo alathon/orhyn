@@ -155,6 +155,7 @@ func test_remote_motion_collection_reports_stall_and_catch_up_episodes() -> void
 
 	var metrics: Dictionary = collector.snapshot()
 	assert_eq(metrics.get("remote_entity_id"), 42)
+	assert_eq(metrics.get("remote_entity_count"), 1)
 	assert_eq(metrics.get("remote_render_sample_count"), 4)
 	assert_eq(metrics.get("remote_motion_sample_count"), 3)
 	assert_eq(metrics.get("remote_extrapolated_sample_count"), 1)
@@ -188,6 +189,61 @@ func test_remote_motion_collection_reports_stall_and_catch_up_episodes() -> void
 		4,
 		"Stopped remote collection should disconnect from interpolation samples"
 	)
+
+func test_remote_motion_collection_aggregates_entities_without_cross_entity_steps() -> void:
+	var collector: ClientNetworkMetricsCollector = add_child_autofree(
+		ClientNetworkMetricsCollector.new()
+	) as ClientNetworkMetricsCollector
+	var scene: PackedScene = load(
+		"res://projects/client/src/entities/remote/remote_entity.tscn"
+	) as PackedScene
+	var first: RemoteEntity = add_child_autoqfree(scene.instantiate()) as RemoteEntity
+	var second: RemoteEntity = add_child_autoqfree(scene.instantiate()) as RemoteEntity
+	first.entity_id = 10
+	second.entity_id = 20
+	var remotes: Array[RemoteEntity] = [first, second]
+	assert_true(collector.set_metric_sample_capacity(32))
+	assert_true(collector.start_remote_motion_collection_many(remotes))
+
+	var moving_velocity: Vector3 = Vector3(10.0, 0.0, 0.0)
+	_emit_remote_observation(
+		first,
+		Vector3.ZERO,
+		moving_velocity,
+		RemoteInterpolationBuffer.RenderMode.INTERPOLATING,
+		0.1
+	)
+	_emit_remote_observation(
+		second,
+		Vector3(100.0, 0.0, 0.0),
+		moving_velocity,
+		RemoteInterpolationBuffer.RenderMode.INTERPOLATING,
+		0.1
+	)
+	_emit_remote_observation(
+		first,
+		Vector3(1.0, 0.0, 0.0),
+		moving_velocity,
+		RemoteInterpolationBuffer.RenderMode.INTERPOLATING,
+		0.1
+	)
+	_emit_remote_observation(
+		second,
+		Vector3(101.0, 0.0, 0.0),
+		moving_velocity,
+		RemoteInterpolationBuffer.RenderMode.INTERPOLATING,
+		0.1
+	)
+	collector.stop_collection()
+
+	var metrics: Dictionary = collector.snapshot()
+	assert_eq(metrics.get("remote_entity_id"), -1)
+	assert_eq(metrics.get("remote_entity_count"), 2)
+	assert_eq(metrics.get("metric_sample_capacity"), 32)
+	assert_eq(metrics.get("remote_render_sample_count"), 4)
+	assert_almost_eq(float(metrics.get("remote_total_rendered_distance")), 2.0, 0.0001)
+	assert_almost_eq(float(metrics.get("remote_max_frame_distance")), 1.0, 0.0001)
+	assert_eq(metrics.get("dropped_metric_value_count"), 0)
 
 func _emit_remote_observation(
 	remote: RemoteEntity,

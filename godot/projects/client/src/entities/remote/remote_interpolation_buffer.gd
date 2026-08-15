@@ -60,6 +60,9 @@ signal remote_transform_rendered(observation: RenderObservation)
 @export_range(0.001, 2.0, 0.001, "or_greater") var fast_correction_half_life: float = 0.05
 @export_range(0.001, 100.0, 0.01, "or_greater") var fast_correction_distance: float = 1.0
 @export_range(0.0, 100.0, 0.1, "or_greater") var maximum_correction_speed: float = 5.0
+@export_range(0.0, 1000.0, 0.1, "or_greater") var rapid_correction_distance: float = 10.0
+@export_range(0.0, 1000.0, 0.1, "or_greater") var rapid_correction_full_speed_distance: float = 20.0
+@export_range(0.0, 1000.0, 0.1, "or_greater") var maximum_rapid_correction_speed: float = 50.0
 # Normal network error is always smoothed; only a gross world-state discontinuity may snap.
 @export_range(0.0, 1000.0, 1.0, "or_greater") var teleport_distance: float = 100.0
 @export_range(0.001, 2.0, 0.001, "or_greater") var rotation_half_life: float = 0.08
@@ -382,11 +385,34 @@ func _decay_presentation_offset(delta: float) -> float:
 	var decay_weight: float = 1.0 - pow(0.5, delta / half_life)
 	var desired_offset: Vector3 = _presentation_offset.lerp(Vector3.ZERO, decay_weight)
 	var correction_step: Vector3 = _presentation_offset - desired_offset
-	var maximum_step: float = maximum_correction_speed * delta
-	if maximum_correction_speed > 0.0 and correction_step.length() > maximum_step:
+	var correction_speed_limit: float = _correction_speed_limit(distance)
+	var maximum_step: float = correction_speed_limit * delta
+	if correction_speed_limit > 0.0 and correction_step.length() > maximum_step:
 		correction_step = correction_step.normalized() * maximum_step
 	_presentation_offset -= correction_step
 	return correction_step.length()
+
+func _correction_speed_limit(distance: float) -> float:
+	if maximum_correction_speed <= 0.0:
+		return 0.0
+	if rapid_correction_distance <= 0.0 \
+			or distance <= rapid_correction_distance \
+			or maximum_rapid_correction_speed <= maximum_correction_speed:
+		return maximum_correction_speed
+	var full_speed_distance: float = maxf(
+		rapid_correction_full_speed_distance,
+		rapid_correction_distance + 0.001
+	)
+	var rapid_weight: float = smoothstep(
+		rapid_correction_distance,
+		full_speed_distance,
+		distance
+	)
+	return lerpf(
+		maximum_correction_speed,
+		maximum_rapid_correction_speed,
+		rapid_weight
+	)
 
 func _emit_render_observation(
 	visual_position: Vector3,

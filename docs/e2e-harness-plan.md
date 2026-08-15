@@ -354,7 +354,11 @@ accepted server-authoritative transform while rendering the model from an
 ordered server-tick timeline. Stable traffic starts with no fixed interpolation
 delay. Arrival jitter raises a bounded adaptive delay; gaps use bounded
 extrapolation; and new snapshot error accumulates into a correction offset that
-is smoothed per frame with a speed cap. A long idle or missing-snapshot gap
+is smoothed per frame. Ordinary error stays under a low correction-speed cap;
+once the offset passes a configurable distance threshold, an eased speed limit
+ramps rapidly to a higher bounded catch-up speed so the visual cannot fall ever
+farther behind merely because the remote is moving faster than the correction
+cap. A long idle or missing-snapshot gap
 rebases the timeline without moving the visual model discontinuously. Ordinary
 network error must not trigger a hard snap.
 
@@ -380,9 +384,46 @@ The suite is headless by default; `make HEADLESS=0 e2e-network-quality` launches
 both real client scenes in windowed mode for visual inspection while keeping the
 orchestrator and zone server headless.
 
+### Milestone 7: Concurrent Remote-Movement Scale
+
+Keep the concurrent population workload in a fourth, measurement-focused
+`make e2e-network-scale` suite. It must reuse the production client scene,
+remote presentation path, metrics collector, and raw UDP impairment proxy, but
+must not repeat the clean suite's spawn, equipment, or movement-semantic
+assertions.
+
+Start a configurable number of full clients (50 by default), each behind its
+own deterministic impairment proxy. Distribute their RTTs evenly from 20 ms to
+300 ms by default, add seeded jitter, and record every assigned profile in the
+run artifacts. Stage expensive scene startup in small batches, confirming that
+each batch entered the world before launching the next, so local process
+contention cannot consume transfer-token lifetimes. After all clients contain the expected population and their
+remote interpolation buffers are warm, arm metrics on the lowest- and
+highest-delay clients behind a common barrier. Then have every client follow a
+seeded varied-direction workload concurrently for 30 seconds.
+
+Both observer clients aggregate the Milestone 6 render metrics across all of
+their remote entities. Per-remote motion state must remain independent so
+switching between entity samples cannot appear as a large rendered step. Sample
+storage remains allocated before movement starts and is sized explicitly for
+the client count and duration; exhaustion fails the workload. Do not establish
+scale-specific visual-quality budgets until measured results provide a useful
+baseline. Episode counts are also normalized by aggregate expected-motion time
+so comparisons against a single remote do not worsen merely because more
+entities are being observed. For now, assert only harness integrity: both observers attach to all
+remotes, enough movement samples are collected, every mover exercises the
+route, and no metric samples are dropped.
+
+The suite runs every client headlessly by default. With
+`make HEADLESS=0 e2e-network-scale`, only the minimum-delay client and the
+300-ms client are windowed; all load-generating clients remain headless. Print
+the same aggregate remote-quality columns for the two observers and preserve
+full per-client results, logs, network profiles, and proxy counters under
+`logs/e2e-network-scale/` for comparison with the two-client suite.
+
 ### Current Implementation Status
 
-Milestones 1 through 6 are implemented. `make e2e` runs the single-client
+Milestones 1 through 7 are implemented. `make e2e` runs the single-client
 gameplay cases, then starts client A, client B, and client C as separate Godot
 processes for the multi-client flow. Staged barriers verify the exact two-client
 and three-client spawn events, spawn positions, remote entities, and entity
@@ -406,6 +447,14 @@ viewpoints. It verifies that the high-latency observer chooses more adaptive
 playout delay while both viewpoints remain within named delay, stall, frame-
 step, hard-snap, and metric-capacity budgets. Separate low- and high-profile
 environment overrides remain available for deliberate experiments.
+
+`make e2e-network-scale` runs 50 clients by default with evenly distributed
+20-300 ms RTT profiles and concurrent seeded movement. The lowest- and
+highest-delay clients aggregate the existing remote render-quality metrics
+across every other player. `ARGS="--clients N --movement-duration S"` provides
+a smaller diagnostic run, while `HEADLESS=0` windows only those two observers.
+Run the same target with `ARGS="--clients 2"` for a controlled baseline using
+the identical concurrent workload and latency endpoints.
 
 ## Failure Handling
 

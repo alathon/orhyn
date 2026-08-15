@@ -137,6 +137,18 @@ func start_remote_network_metrics_collection(entity_id: int) -> bool:
 		return false
 	return _network_metrics.start_remote_motion_collection(remote)
 
+func start_all_remote_network_metrics_collection(sample_capacity: int) -> bool:
+	if _network_metrics == null or _entity_spawner == null:
+		return false
+	if not _network_metrics.set_metric_sample_capacity(sample_capacity):
+		return false
+	var remotes: Array[RemoteEntity] = []
+	for entity: BaseEntity in _entity_spawner.get_players().values():
+		var remote: RemoteEntity = entity as RemoteEntity
+		if remote != null:
+			remotes.append(remote)
+	return _network_metrics.start_remote_motion_collection_many(remotes)
+
 func stop_network_metrics_collection() -> Dictionary:
 	if _network_metrics == null:
 		return {}
@@ -156,6 +168,39 @@ func wait_for_remote_interpolation_ready(
 	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
 		var remote: RemoteEntity = get_entity(entity_id) as RemoteEntity
 		if remote != null and remote.interpolation_buffer.is_ready_for_observation():
+			return true
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return false
+
+func wait_for_entity_count(
+		expected_count: int,
+		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> bool:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		if _entity_spawner != null \
+				and _entity_spawner.get_players().size() == expected_count:
+			return true
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return false
+
+func wait_for_all_remote_interpolation_ready(
+		expected_remote_count: int,
+		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> bool:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		var ready_count: int = 0
+		if _entity_spawner != null:
+			for entity: BaseEntity in _entity_spawner.get_players().values():
+				var remote: RemoteEntity = entity as RemoteEntity
+				if remote != null and remote.interpolation_buffer.is_ready_for_observation():
+					ready_count += 1
+		if ready_count == expected_remote_count:
 			return true
 		if _game_server_api != null:
 			_game_server_api.poll()

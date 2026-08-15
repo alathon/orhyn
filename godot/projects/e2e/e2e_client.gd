@@ -23,6 +23,10 @@ func _run() -> void:
 		"movement_duration_seconds": float(_get_arg("--movement-duration", "20")),
 		"metrics_drain_seconds": float(_get_arg("--metrics-drain", "1")),
 		"minimum_remote_motion_samples": int(_get_arg("--min-remote-motion-samples", "1")),
+		"client_index": int(_get_arg("--client-index", "0")),
+		"client_count": int(_get_arg("--client-count", "1")),
+		"movement_seed": int(_get_arg("--movement-seed", "1")),
+		"metric_sample_capacity": int(_get_arg("--metric-sample-capacity", "8192")),
 	}
 	var result_file: String = _get_arg("--result-file", DEFAULT_RESULT_FILE)
 

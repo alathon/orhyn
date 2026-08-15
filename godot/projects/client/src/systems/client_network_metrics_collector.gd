@@ -29,6 +29,12 @@ class FixedFloatSamples:
 		var index: int = ceili(percentile_value * float(count)) - 1
 		return sorted_values[clampi(index, 0, count - 1)]
 
+class RemoteMotionState:
+	var previous_position: Vector3 = Vector3.ZERO
+	var has_previous_position: bool = false
+	var was_stalled: bool = false
+	var was_catching_up: bool = false
+
 @export var enabled: bool = false
 @export_range(0.0, 10.0, 0.01, "or_greater") var remote_moving_speed_epsilon: float = 0.10
 @export_range(0.0, 1.0, 0.01, "or_greater") var remote_stall_speed_ratio: float = 0.10
@@ -51,8 +57,13 @@ var _ack_position_drifts: FixedFloatSamples = null
 var _body_correction_distances: FixedFloatSamples = null
 var _dropped_metric_value_count: int = 0
 var _collect_local_reconciliation: bool = true
-var _remote_buffer: RemoteInterpolationBuffer = null
+var _metric_sample_capacity: int = MAX_METRIC_SAMPLE_COUNT
+var _sample_storage_capacity: int = 0
+var _remote_buffers: Array[RemoteInterpolationBuffer] = []
+var _remote_buffer_callbacks: Array[Callable] = []
+var _remote_motion_states: Array[RemoteMotionState] = []
 var _remote_entity_id: int = -1
+var _remote_entity_count: int = 0
 var _remote_render_sample_count: int = 0
 var _remote_motion_sample_count: int = 0
 var _remote_interpolated_sample_count: int = 0
@@ -88,39 +99,58 @@ var _remote_frame_distances: FixedFloatSamples = null
 var _remote_correction_distances: FixedFloatSamples = null
 var _remote_correction_speeds: FixedFloatSamples = null
 var _remote_playout_delays: FixedFloatSamples = null
-var _remote_previous_position: Vector3 = Vector3.ZERO
-var _remote_has_previous_position: bool = false
-var _remote_was_stalled: bool = false
-var _remote_was_catching_up: bool = false
 
 func _ready() -> void:
 	if enabled:
 		reset_collection()
 
 func start_collection() -> void:
-	_disconnect_remote_buffer()
+	_disconnect_remote_buffers()
 	enabled = true
 	reset_collection()
 	_collect_local_reconciliation = true
 
 func start_remote_motion_collection(remote: RemoteEntity) -> bool:
-	if remote == null or remote.interpolation_buffer == null:
+	var remotes: Array[RemoteEntity] = []
+	remotes.append(remote)
+	return start_remote_motion_collection_many(remotes)
+
+func start_remote_motion_collection_many(remotes: Array[RemoteEntity]) -> bool:
+	if remotes.is_empty():
 		return false
+	for remote: RemoteEntity in remotes:
+		if remote == null or remote.interpolation_buffer == null:
+			return false
 	start_collection()
 	_collect_local_reconciliation = false
-	_remote_entity_id = remote.entity_id
-	_remote_buffer = remote.interpolation_buffer
-	_remote_buffer.remote_transform_rendered.connect(_on_remote_transform_rendered)
+	_remote_entity_count = remotes.size()
+	_remote_entity_id = remotes[0].entity_id if remotes.size() == 1 else -1
+	for remote: RemoteEntity in remotes:
+		var buffer: RemoteInterpolationBuffer = remote.interpolation_buffer
+		var state_index: int = _remote_motion_states.size()
+		var callback: Callable = _on_remote_transform_rendered.bind(state_index)
+		_remote_buffers.append(buffer)
+		_remote_buffer_callbacks.append(callback)
+		_remote_motion_states.append(RemoteMotionState.new())
+		buffer.remote_transform_rendered.connect(callback)
+	return true
+
+func set_metric_sample_capacity(sample_capacity: int) -> bool:
+	if enabled or sample_capacity <= 0:
+		return false
+	_metric_sample_capacity = sample_capacity
 	return true
 
 func stop_collection() -> void:
 	if enabled:
 		_stopped_usec = Time.get_ticks_usec()
-	if is_instance_valid(_remote_buffer):
-		_remote_rejected_stale_snapshot_count = \
-			_remote_buffer.get_rejected_stale_snapshot_count()
+	_remote_rejected_stale_snapshot_count = 0
+	for buffer: RemoteInterpolationBuffer in _remote_buffers:
+		if is_instance_valid(buffer):
+			_remote_rejected_stale_snapshot_count += \
+				buffer.get_rejected_stale_snapshot_count()
 	enabled = false
-	_disconnect_remote_buffer()
+	_disconnect_remote_buffers()
 
 func reset_collection() -> void:
 	_ensure_sample_storage()
@@ -141,6 +171,7 @@ func reset_collection() -> void:
 	_body_correction_distances.reset()
 	_dropped_metric_value_count = 0
 	_remote_entity_id = -1
+	_remote_entity_count = 0
 	_remote_render_sample_count = 0
 	_remote_motion_sample_count = 0
 	_remote_interpolated_sample_count = 0
@@ -176,10 +207,6 @@ func reset_collection() -> void:
 	_remote_correction_distances.reset()
 	_remote_correction_speeds.reset()
 	_remote_playout_delays.reset()
-	_remote_previous_position = Vector3.ZERO
-	_remote_has_previous_position = false
-	_remote_was_stalled = false
-	_remote_was_catching_up = false
 
 func record_reconciliation(result: PlayerMovementReconciliation.Result) -> void:
 	if not enabled or not _collect_local_reconciliation or not result.has_ack:
@@ -217,7 +244,7 @@ func snapshot() -> Dictionary:
 	return {
 		"enabled": enabled,
 		"duration_seconds": duration_seconds,
-		"metric_sample_capacity": MAX_METRIC_SAMPLE_COUNT,
+		"metric_sample_capacity": _metric_sample_capacity,
 		"dropped_metric_value_count": _dropped_metric_value_count,
 		"acknowledged_snapshot_count": _acknowledged_snapshot_count,
 		"new_acknowledgement_count": (
@@ -252,15 +279,28 @@ func snapshot() -> Dictionary:
 		),
 		"max_body_correction_distance": _max_body_correction_distance,
 		"remote_entity_id": _remote_entity_id,
+		"remote_entity_count": _remote_entity_count,
 		"remote_render_sample_count": _remote_render_sample_count,
 		"remote_motion_sample_count": _remote_motion_sample_count,
 		"remote_interpolated_sample_count": _remote_interpolated_sample_count,
 		"remote_extrapolated_sample_count": _remote_extrapolated_sample_count,
 		"remote_buffer_underrun_sample_count": _remote_buffer_underrun_sample_count,
 		"remote_stall_episode_count": _remote_stall_episode_count,
+		"remote_stall_episodes_per_minute": 60.0 * _rate(
+			_remote_stall_episode_count,
+			_remote_expected_motion_seconds
+		),
 		"remote_catch_up_episode_count": _remote_catch_up_episode_count,
+		"remote_catch_up_episodes_per_minute": 60.0 * _rate(
+			_remote_catch_up_episode_count,
+			_remote_expected_motion_seconds
+		),
 		"remote_motion_discontinuity_count": (
 			_remote_stall_episode_count + _remote_catch_up_episode_count
+		),
+		"remote_motion_discontinuities_per_minute": 60.0 * _rate(
+			_remote_stall_episode_count + _remote_catch_up_episode_count,
+			_remote_expected_motion_seconds
 		),
 		"remote_hard_snap_count": _remote_hard_snap_count,
 		"remote_observed_seconds": _remote_observed_seconds,
@@ -330,11 +370,14 @@ func snapshot() -> Dictionary:
 	}
 
 func _on_remote_transform_rendered(
-	observation: RemoteInterpolationBuffer.RenderObservation
+	observation: RemoteInterpolationBuffer.RenderObservation,
+	state_index: int
 ) -> void:
 	var delta: float = observation.delta
-	if not enabled or delta <= 0.0:
+	if not enabled or delta <= 0.0 \
+			or state_index < 0 or state_index >= _remote_motion_states.size():
 		return
+	var motion_state: RemoteMotionState = _remote_motion_states[state_index]
 
 	_remote_render_sample_count += 1
 	_remote_observed_seconds += delta
@@ -373,23 +416,23 @@ func _on_remote_transform_rendered(
 		observation.target_playout_delay_seconds
 	)
 
-	if not _remote_has_previous_position:
-		_remote_previous_position = observation.position
-		_remote_has_previous_position = true
+	if not motion_state.has_previous_position:
+		motion_state.previous_position = observation.position
+		motion_state.has_previous_position = true
 		return
 
-	var frame_distance: float = observation.position.distance_to(_remote_previous_position)
+	var frame_distance: float = observation.position.distance_to(motion_state.previous_position)
 	var rendered_speed: float = frame_distance / delta
 	var expected_speed: float = observation.expected_velocity.length()
-	_remote_previous_position = observation.position
+	motion_state.previous_position = observation.position
 	_remote_total_rendered_distance += frame_distance
 	_remote_max_frame_distance = maxf(_remote_max_frame_distance, frame_distance)
 	_record_metric_value(_remote_frame_distances, frame_distance)
 
 	var expected_movement: bool = expected_speed > remote_moving_speed_epsilon
 	if not expected_movement:
-		_remote_was_stalled = false
-		_remote_was_catching_up = false
+		motion_state.was_stalled = false
+		motion_state.was_catching_up = false
 		return
 
 	_remote_motion_sample_count += 1
@@ -409,21 +452,25 @@ func _on_remote_transform_rendered(
 	var catching_up: bool = rendered_speed >= expected_speed * remote_catch_up_speed_ratio
 	if stalled:
 		_remote_stalled_seconds += delta
-		if not _remote_was_stalled:
+		if not motion_state.was_stalled:
 			_remote_stall_episode_count += 1
 	if catching_up:
 		_remote_catch_up_seconds += delta
-		if not _remote_was_catching_up:
+		if not motion_state.was_catching_up:
 			_remote_catch_up_episode_count += 1
-	_remote_was_stalled = stalled
-	_remote_was_catching_up = catching_up
+	motion_state.was_stalled = stalled
+	motion_state.was_catching_up = catching_up
 
-func _disconnect_remote_buffer() -> void:
-	if is_instance_valid(_remote_buffer) and _remote_buffer.remote_transform_rendered.is_connected(
-		_on_remote_transform_rendered
-	):
-		_remote_buffer.remote_transform_rendered.disconnect(_on_remote_transform_rendered)
-	_remote_buffer = null
+func _disconnect_remote_buffers() -> void:
+	for index: int in range(_remote_buffers.size()):
+		var buffer: RemoteInterpolationBuffer = _remote_buffers[index]
+		var callback: Callable = _remote_buffer_callbacks[index]
+		if is_instance_valid(buffer) \
+				and buffer.remote_transform_rendered.is_connected(callback):
+			buffer.remote_transform_rendered.disconnect(callback)
+	_remote_buffers.clear()
+	_remote_buffer_callbacks.clear()
+	_remote_motion_states.clear()
 
 func _duration_seconds() -> float:
 	if _started_usec <= 0:
@@ -452,16 +499,17 @@ func _average(total: float, count: int) -> float:
 	return total / float(count)
 
 func _ensure_sample_storage() -> void:
-	if _ack_position_drifts != null:
+	if _ack_position_drifts != null and _sample_storage_capacity == _metric_sample_capacity:
 		return
-	_ack_position_drifts = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
-	_body_correction_distances = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
-	_remote_rendered_speeds = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
-	_remote_speed_errors = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
-	_remote_frame_distances = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
-	_remote_correction_distances = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
-	_remote_correction_speeds = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
-	_remote_playout_delays = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
+	_sample_storage_capacity = _metric_sample_capacity
+	_ack_position_drifts = FixedFloatSamples.new(_sample_storage_capacity)
+	_body_correction_distances = FixedFloatSamples.new(_sample_storage_capacity)
+	_remote_rendered_speeds = FixedFloatSamples.new(_sample_storage_capacity)
+	_remote_speed_errors = FixedFloatSamples.new(_sample_storage_capacity)
+	_remote_frame_distances = FixedFloatSamples.new(_sample_storage_capacity)
+	_remote_correction_distances = FixedFloatSamples.new(_sample_storage_capacity)
+	_remote_correction_speeds = FixedFloatSamples.new(_sample_storage_capacity)
+	_remote_playout_delays = FixedFloatSamples.new(_sample_storage_capacity)
 
 func _record_metric_value(samples: FixedFloatSamples, value: float) -> void:
 	if samples == null or not samples.record(value):

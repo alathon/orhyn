@@ -151,6 +151,46 @@ func test_large_tick_gap_rebases_timeline_without_teleporting_visual() -> void:
 	assert_almost_eq(last_observation[0].playout_delay_seconds, 0.0, 0.001)
 	assert_false(last_observation[0].hard_snap_applied)
 
+func test_large_presentation_error_accelerates_correction_without_snapping() -> void:
+	var remote: RemoteEntity = _make_remote()
+	var buffer: RemoteInterpolationBuffer = remote.interpolation_buffer
+	buffer.adaptive_playout_enabled = false
+	buffer.maximum_correction_speed = 5.0
+	buffer.rapid_correction_distance = 10.0
+	buffer.rapid_correction_full_speed_distance = 20.0
+	buffer.maximum_rapid_correction_speed = 50.0
+	buffer.teleport_distance = 100.0
+	var last_observation: Array[RemoteInterpolationBuffer.RenderObservation] = []
+	buffer.remote_transform_rendered.connect(func(
+		observation: RemoteInterpolationBuffer.RenderObservation
+	) -> void:
+		last_observation.assign([_copy_observation(observation)])
+	)
+
+	buffer.push_movement_snapshot(
+		_make_snapshot(0, Vector3.ZERO, Vector3.ZERO),
+		0.0
+	)
+	buffer.advance(TEST_DELTA)
+	buffer.push_movement_snapshot(
+		_make_snapshot(400, Vector3(20.0, 0.0, 0.0), Vector3.ZERO),
+		20.0
+	)
+	buffer.advance(TEST_DELTA)
+
+	assert_true(
+		last_observation[0].correction_speed > buffer.maximum_correction_speed,
+		"Error beyond the rapid threshold should exceed the normal correction cap"
+	)
+	assert_almost_eq(
+		last_observation[0].correction_speed,
+		buffer.maximum_rapid_correction_speed,
+		0.001
+	)
+	assert_true(remote.model.global_position.x > 0.05)
+	assert_true(remote.model.global_position.x < 1.0)
+	assert_false(last_observation[0].hard_snap_applied)
+
 func test_adaptive_delay_responds_to_jitter_but_stays_zero_for_stable_arrivals() -> void:
 	var stable_remote: RemoteEntity = _make_remote()
 	var stable_buffer: RemoteInterpolationBuffer = stable_remote.interpolation_buffer
