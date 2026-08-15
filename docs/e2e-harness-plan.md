@@ -337,6 +337,10 @@ snapshotted. It can measure local reconciliation when diagnosing predicted
 movement, but this E2E suite attaches it to the real remote interpolation buffer
 and records what was actually rendered each frame:
 
+- Actual and target adaptive playout delay.
+- Interpolation, bounded extrapolation, and buffer-underrun time.
+- Presentation-correction distance and correction speed.
+- Explicit hard-snap count.
 - Buffer-underrun and visible stall time and episode counts while snapshots say
   the remote entity should be moving.
 - Catch-up bursts at least twice the expected snapshot speed, plus a combined
@@ -345,6 +349,21 @@ and records what was actually rendered each frame:
 - P95 and maximum per-frame displacement, so large visible jumps remain visible
   even when their duration is short.
 
+The production remote presentation path keeps the remote body at the newest
+accepted server-authoritative transform while rendering the model from an
+ordered server-tick timeline. Stable traffic starts with no fixed interpolation
+delay. Arrival jitter raises a bounded adaptive delay; gaps use bounded
+extrapolation; and new snapshot error accumulates into a correction offset that
+is smoothed per frame with a speed cap. A long idle or missing-snapshot gap
+rebases the timeline without moving the visual model discontinuously. Ordinary
+network error must not trigger a hard snap.
+
+This frame path must not create reference-counted objects per frame. Remote
+snapshot slots and the emitted render-observation object are allocated once and
+reused. When metrics collection is enabled, its percentile samples use fixed-
+capacity packed buffers allocated at collection startup and reset in place.
+Exhausting that capacity is reported as a metric and fails the quality suite.
+
 Run one low-latency client (20 ms RTT, 2 ms jitter, no loss by default) and one
 high-latency client (400 ms RTT, 40 ms jitter, 2% loss by default) concurrently.
 Use two synchronized phases of the same 20-second varied-direction workload:
@@ -352,9 +371,10 @@ the low-latency client moves while the high-latency client observes its remote
 entity, then the high-latency client moves while the low-latency client observes
 its remote entity. This separates impairment on the observer/downstream path
 from impairment on the mover/upstream path. Assert that both observations
-contain enough real rendered movement, and that the high-latency observer has a
-higher stall ratio and larger worst frame step than the low-latency observer.
-Preserve complete metrics and per-client proxy counters in
+contain enough real rendered movement. Assert that the impaired observer
+selects more adaptive playout delay, while both observations remain within
+explicit average-delay, stall-ratio, maximum-frame-step, and zero-hard-snap
+budgets. Preserve complete metrics and per-client proxy counters in
 `logs/e2e-network-quality/`, and print both observation directions side by side.
 The suite is headless by default; `make HEADLESS=0 e2e-network-quality` launches
 both real client scenes in windowed mode for visual inspection while keeping the
@@ -380,10 +400,12 @@ their stricter semantic assertions.
 
 `make e2e-network-quality` independently runs the paired varied-direction
 remote-motion workload. The client collector remains off outside each
-observation window. The runner reports stalls, catch-up bursts, buffer
-underruns, speed error, and frame displacement for both viewpoints, verifies
-that the high-latency viewpoint is measurably worse, and exposes separate low-
-and high-profile environment overrides for deliberate experiments.
+observation window. The runner reports adaptive delay, extrapolation,
+correction, stalls, hard snaps, speed error, and frame displacement for both
+viewpoints. It verifies that the high-latency observer chooses more adaptive
+playout delay while both viewpoints remain within named delay, stall, frame-
+step, hard-snap, and metric-capacity budgets. Separate low- and high-profile
+environment overrides remain available for deliberate experiments.
 
 ## Failure Handling
 

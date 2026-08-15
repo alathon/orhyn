@@ -277,7 +277,7 @@ func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 			"max_distance": AUTHORITATIVE_POSITION_EPSILON,
 			"server_tick": server_tick,
 		})
-	if not await session.wait_for_entity_position_near(
+	if not await session.wait_for_entity_visual_position_near(
 		actor_entity_id,
 		authoritative_position,
 		REMOTE_CONVERGENCE_DISTANCE,
@@ -286,11 +286,11 @@ func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 		return failed("converge_remote_position", "Observer's remote actor did not converge to the authoritative position.", {
 			"actor_entity_id": actor_entity_id,
 			"authoritative_position": str(authoritative_position),
-			"remote_position": str(session.get_entity_position(actor_entity_id)),
+			"remote_position": str(session.get_entity_visual_position(actor_entity_id)),
 			"max_distance": REMOTE_CONVERGENCE_DISTANCE,
 			"server_tick": server_tick,
 		})
-	var remote_converged_position: Vector3 = session.get_entity_position(actor_entity_id)
+	var remote_converged_position: Vector3 = session.get_entity_visual_position(actor_entity_id)
 	var rendered_difference: float = remote_converged_position.distance_to(authoritative_position)
 
 	var equipment_event: EntityEquipmentChangedGameEvent = await session.wait_for_entity_equipment_changed_event(

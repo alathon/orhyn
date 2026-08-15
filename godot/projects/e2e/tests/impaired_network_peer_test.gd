@@ -242,7 +242,7 @@ func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 			"target": str(settled_position),
 			"min_server_tick": settled_server_tick,
 		})
-	if not await session.wait_for_entity_position_near(
+	if not await session.wait_for_entity_visual_position_near(
 		actor_entity_id,
 		settled_position,
 		REMOTE_CONVERGENCE_DISTANCE,
@@ -250,7 +250,7 @@ func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 	):
 		return failed("converge_rendered_position", "The rendered remote actor did not converge within bounds.", {
 			"target": str(settled_position),
-			"actual": str(session.get_entity_position(actor_entity_id)),
+			"actual": str(session.get_entity_visual_position(actor_entity_id)),
 			"max_distance": REMOTE_CONVERGENCE_DISTANCE,
 		})
 
@@ -266,7 +266,7 @@ func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 	var convergence_file: String = E2ECoordination.IMPAIRED_OBSERVER_CONVERGED_FILE \
 		if client_role == ROLE_OBSERVER else E2ECoordination.IMPAIRED_JOINER_CONVERGED_FILE
 	var convergence_path: String = coordination_dir.path_join(convergence_file)
-	var rendered_position: Vector3 = session.get_entity_position(actor_entity_id)
+	var rendered_position: Vector3 = session.get_entity_visual_position(actor_entity_id)
 	write_error = E2ECoordination.write_json(convergence_path, {
 		"role": client_role,
 		"entity_id": local_entity_id,

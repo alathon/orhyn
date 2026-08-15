@@ -406,6 +406,12 @@ func get_entity_position(entity_id: int) -> Vector3:
 	var body: Node3D = entity.get_body()
 	return body.global_position
 
+func get_entity_visual_position(entity_id: int) -> Vector3:
+	var entity: BaseEntity = get_entity(entity_id)
+	if entity is RemoteEntity:
+		return (entity as RemoteEntity).model.global_position
+	return get_entity_position(entity_id)
+
 func wait_for_entity_position_changed(
 		entity_id: int,
 		origin: Vector3,
@@ -432,6 +438,21 @@ func wait_for_entity_position_near(
 	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
 		var entity: BaseEntity = get_entity(entity_id)
 		if entity != null and get_entity_position(entity_id).distance_to(target) <= max_distance:
+			return true
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return false
+
+func wait_for_entity_visual_position_near(
+	entity_id: int,
+	target: Vector3,
+	max_distance: float,
+	wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> bool:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		if get_entity_visual_position(entity_id).distance_to(target) <= max_distance:
 			return true
 		if _game_server_api != null:
 			_game_server_api.poll()

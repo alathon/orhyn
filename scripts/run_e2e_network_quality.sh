@@ -23,6 +23,11 @@ high_rtt_ms="${ORHYN_E2E_NETWORK_QUALITY_HIGH_RTT_MS:-400}"
 high_jitter_ms="${ORHYN_E2E_NETWORK_QUALITY_HIGH_JITTER_MS:-40}"
 high_loss_percent="${ORHYN_E2E_NETWORK_QUALITY_HIGH_LOSS_PERCENT:-2}"
 high_seed="${ORHYN_E2E_NETWORK_QUALITY_HIGH_SEED:-1001}"
+max_low_average_playout_delay="${ORHYN_E2E_NETWORK_QUALITY_MAX_LOW_AVERAGE_PLAYOUT_DELAY:-0.075}"
+max_high_average_playout_delay="${ORHYN_E2E_NETWORK_QUALITY_MAX_HIGH_AVERAGE_PLAYOUT_DELAY:-0.30}"
+max_high_stall_ratio="${ORHYN_E2E_NETWORK_QUALITY_MAX_HIGH_STALL_RATIO:-0.05}"
+max_high_frame_distance="${ORHYN_E2E_NETWORK_QUALITY_MAX_HIGH_FRAME_DISTANCE:-0.25}"
+max_hard_snaps="${ORHYN_E2E_NETWORK_QUALITY_MAX_HARD_SNAPS:-0}"
 
 source "$script_dir/lib/process_supervisor.sh"
 
@@ -47,6 +52,13 @@ Profiles can be changed with:
   ORHYN_E2E_NETWORK_QUALITY_HIGH_JITTER_MS
   ORHYN_E2E_NETWORK_QUALITY_HIGH_LOSS_PERCENT
   ORHYN_E2E_NETWORK_QUALITY_HIGH_SEED
+
+Visual-quality budgets can be changed with:
+  ORHYN_E2E_NETWORK_QUALITY_MAX_LOW_AVERAGE_PLAYOUT_DELAY
+  ORHYN_E2E_NETWORK_QUALITY_MAX_HIGH_AVERAGE_PLAYOUT_DELAY
+  ORHYN_E2E_NETWORK_QUALITY_MAX_HIGH_STALL_RATIO
+  ORHYN_E2E_NETWORK_QUALITY_MAX_HIGH_FRAME_DISTANCE
+  ORHYN_E2E_NETWORK_QUALITY_MAX_HARD_SNAPS
 EOF
 }
 
@@ -95,15 +107,18 @@ esac
 for value in "$movement_duration_seconds" "$metrics_drain_seconds" \
         "$client_timeout_seconds" "$process_timeout_seconds" \
         "$low_rtt_ms" "$low_jitter_ms" "$low_seed" \
-        "$high_rtt_ms" "$high_jitter_ms" "$high_seed"; do
+        "$high_rtt_ms" "$high_jitter_ms" "$high_seed" "$max_hard_snaps"; do
     if ! [[ "$value" =~ ^[0-9]+$ ]]; then
         echo "Durations, delays, jitter, and seeds must be non-negative integers: $value" >&2
         exit 2
     fi
 done
-for value in "$low_loss_percent" "$high_loss_percent"; do
+for value in "$low_loss_percent" "$high_loss_percent" \
+        "$max_low_average_playout_delay" "$max_high_average_playout_delay" \
+        "$max_high_stall_ratio" \
+        "$max_high_frame_distance"; do
     if ! [[ "$value" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
-        echo "Loss percentages must be non-negative numbers: $value" >&2
+        echo "Loss percentages and quality budgets must be non-negative numbers: $value" >&2
         exit 2
     fi
 done
@@ -281,6 +296,17 @@ format_ratio_metric() {
     awk -v ratio="$value" 'BEGIN { printf "%.1f%%", ratio * 100.0 }'
 }
 
+format_milliseconds_metric() {
+    local value
+
+    value="$(extract_metric "$1" "$2")"
+    if [[ "$value" == "n/a" ]]; then
+        printf 'n/a'
+        return 0
+    fi
+    awk -v seconds="$value" 'BEGIN { printf "%.1f", seconds * 1000.0 }'
+}
+
 metric_is_greater() {
     local greater_value
     local lesser_value
@@ -294,18 +320,63 @@ metric_is_greater() {
         'BEGIN { exit !(greater > lesser) }'
 }
 
-assert_high_latency_degrades_remote_view() {
+metric_is_less_than_or_equal() {
+    local observed_value
+
+    observed_value="$(extract_metric "$1" "$2")"
+    if [[ "$observed_value" == "n/a" ]]; then
+        return 1
+    fi
+    awk -v observed="$observed_value" -v maximum="$3" \
+        'BEGIN { exit !(observed <= maximum) }'
+}
+
+assert_remote_view_quality() {
     local high_observer_result="$artifact_dir/client-high-result.json"
     local low_observer_result="$artifact_dir/client-low-result.json"
 
     if ! metric_is_greater \
-            "$high_observer_result" "$low_observer_result" remote_stall_ratio; then
-        echo "Expected the high-latency observer to spend more motion time stalled." >&2
+            "$high_observer_result" "$low_observer_result" \
+            remote_average_target_playout_delay; then
+        echo "Expected adaptive playout to assign more delay to the impaired observer." >&2
         return 1
     fi
-    if ! metric_is_greater \
-            "$high_observer_result" "$low_observer_result" remote_max_frame_distance; then
-        echo "Expected the high-latency observer to have the larger worst frame step." >&2
+    if ! metric_is_less_than_or_equal \
+            "$low_observer_result" remote_average_playout_delay \
+            "$max_low_average_playout_delay"; then
+        echo "Low-latency observer exceeded the average playout-delay budget." >&2
+        return 1
+    fi
+    if ! metric_is_less_than_or_equal \
+            "$high_observer_result" remote_average_playout_delay \
+            "$max_high_average_playout_delay"; then
+        echo "High-latency observer exceeded the average playout-delay budget." >&2
+        return 1
+    fi
+    if ! metric_is_less_than_or_equal \
+            "$high_observer_result" remote_stall_ratio "$max_high_stall_ratio"; then
+        echo "High-latency observer exceeded the stalled-motion budget." >&2
+        return 1
+    fi
+    if ! metric_is_less_than_or_equal \
+            "$high_observer_result" remote_max_frame_distance "$max_high_frame_distance" \
+            || ! metric_is_less_than_or_equal \
+            "$low_observer_result" remote_max_frame_distance "$max_high_frame_distance"; then
+        echo "A remote observer exceeded the worst-frame-step budget." >&2
+        return 1
+    fi
+    if ! metric_is_less_than_or_equal \
+            "$high_observer_result" remote_hard_snap_count "$max_hard_snaps" \
+            || ! metric_is_less_than_or_equal \
+            "$low_observer_result" remote_hard_snap_count "$max_hard_snaps"; then
+        echo "A remote observer exceeded the hard-snap budget." >&2
+        return 1
+    fi
+    if ! metric_is_less_than_or_equal \
+            "$high_observer_result" dropped_metric_value_count 0 \
+            || ! metric_is_less_than_or_equal \
+            "$low_observer_result" dropped_metric_value_count 0; then
+        echo "A remote observer exhausted its preallocated metric sample storage." >&2
         return 1
     fi
 }
@@ -321,24 +392,25 @@ print_quality_summary() {
         "$low_rtt_ms" "$low_jitter_ms" "$low_loss_percent"
     printf 'high: %s ms RTT, %s ms jitter, %s%% loss\n' \
         "$high_rtt_ms" "$high_jitter_ms" "$high_loss_percent"
-    printf '%-32s %8s %9s %9s %10s %10s %13s %12s\n' \
-        'view' 'stalls' 'catch-ups' 'combined' 'stall-time' 'underrun' 'p95-speed-err' 'max-step'
+    printf '%-32s %9s %9s %8s %9s %7s %7s %13s %10s\n' \
+        'view' 'delay-ms' 'target-ms' 'extra%' 'p95-corr' 'stalls' 'snaps' 'p95-speed-err' 'max-step'
     for entry in \
             "high observes low|$high_observer_result" \
             "low observes high|$low_observer_result"; do
         label="${entry%%|*}"
         path="${entry#*|}"
-        printf '%-32s %8s %9s %9s %10s %10s %13s %12s\n' \
+        printf '%-32s %9s %9s %8s %9s %7s %7s %13s %10s\n' \
             "$label" \
+            "$(format_milliseconds_metric "$path" remote_average_playout_delay)" \
+            "$(format_milliseconds_metric "$path" remote_average_target_playout_delay)" \
+            "$(format_ratio_metric "$path" remote_extrapolated_ratio)" \
+            "$(format_decimal_metric "$path" remote_p95_correction_distance)" \
             "$(extract_metric "$path" remote_stall_episode_count)" \
-            "$(extract_metric "$path" remote_catch_up_episode_count)" \
-            "$(extract_metric "$path" remote_motion_discontinuity_count)" \
-            "$(format_ratio_metric "$path" remote_stall_ratio)" \
-            "$(format_ratio_metric "$path" remote_buffer_underrun_ratio)" \
+            "$(extract_metric "$path" remote_hard_snap_count)" \
             "$(format_decimal_metric "$path" remote_p95_speed_error)" \
             "$(format_decimal_metric "$path" remote_max_frame_distance)"
     done
-    echo "Catch-ups are >=2x rendered-speed bursts; combined is stalls plus catch-ups."
+    echo "delay/target are adaptive playout milliseconds; extra is bounded extrapolation time."
 }
 
 start_proxy() {
@@ -444,6 +516,11 @@ printf '%s\n' \
     "metrics_drain_seconds=$metrics_drain_seconds" \
     "headless=$headless" \
     "minimum_remote_motion_samples=$minimum_remote_motion_samples" \
+    "max_low_average_playout_delay=$max_low_average_playout_delay" \
+    "max_high_average_playout_delay=$max_high_average_playout_delay" \
+    "max_high_stall_ratio=$max_high_stall_ratio" \
+    "max_high_frame_distance=$max_high_frame_distance" \
+    "max_hard_snaps=$max_hard_snaps" \
     "low_profile=rtt:${low_rtt_ms}ms,jitter:${low_jitter_ms}ms,loss:${low_loss_percent}%,seed:$low_seed,port:$proxy_low_port" \
     "high_profile=rtt:${high_rtt_ms}ms,jitter:${high_jitter_ms}ms,loss:${high_loss_percent}%,seed:$high_seed,port:$proxy_high_port" \
     > "$artifact_dir/run.env"
@@ -528,7 +605,7 @@ if (( low_status != 0 || high_status != 0 || result_status != 0 )); then
 fi
 
 print_quality_summary
-if ! assert_high_latency_degrades_remote_view; then
+if ! assert_remote_view_quality; then
     stop_and_report_failure 1
 fi
 

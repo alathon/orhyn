@@ -1,6 +1,34 @@
 class_name ClientNetworkMetricsCollector
 extends Node
 
+const MAX_METRIC_SAMPLE_COUNT: int = 8192
+
+class FixedFloatSamples:
+	var values: PackedFloat64Array = PackedFloat64Array()
+	var count: int = 0
+
+	func _init(capacity: int) -> void:
+		values.resize(capacity)
+
+	func reset() -> void:
+		count = 0
+
+	func record(value: float) -> bool:
+		if count >= values.size():
+			return false
+		values[count] = value
+		count += 1
+		return true
+
+	func percentile(percentile_value: float) -> float:
+		if count <= 0:
+			return 0.0
+		var sorted_values: PackedFloat64Array = values.duplicate()
+		sorted_values.resize(count)
+		sorted_values.sort()
+		var index: int = ceili(percentile_value * float(count)) - 1
+		return sorted_values[clampi(index, 0, count - 1)]
+
 @export var enabled: bool = false
 @export_range(0.0, 10.0, 0.01, "or_greater") var remote_moving_speed_epsilon: float = 0.10
 @export_range(0.0, 1.0, 0.01, "or_greater") var remote_stall_speed_ratio: float = 0.10
@@ -19,19 +47,24 @@ var _total_ack_position_drift: float = 0.0
 var _max_ack_position_drift: float = 0.0
 var _total_body_correction_distance: float = 0.0
 var _max_body_correction_distance: float = 0.0
-var _ack_position_drifts: Array[float] = []
-var _body_correction_distances: Array[float] = []
+var _ack_position_drifts: FixedFloatSamples = null
+var _body_correction_distances: FixedFloatSamples = null
+var _dropped_metric_value_count: int = 0
 var _collect_local_reconciliation: bool = true
 var _remote_buffer: RemoteInterpolationBuffer = null
 var _remote_entity_id: int = -1
 var _remote_render_sample_count: int = 0
 var _remote_motion_sample_count: int = 0
 var _remote_interpolated_sample_count: int = 0
+var _remote_extrapolated_sample_count: int = 0
 var _remote_buffer_underrun_sample_count: int = 0
 var _remote_stall_episode_count: int = 0
 var _remote_catch_up_episode_count: int = 0
+var _remote_hard_snap_count: int = 0
+var _remote_rejected_stale_snapshot_count: int = 0
 var _remote_observed_seconds: float = 0.0
 var _remote_expected_motion_seconds: float = 0.0
+var _remote_extrapolated_seconds: float = 0.0
 var _remote_stalled_seconds: float = 0.0
 var _remote_catch_up_seconds: float = 0.0
 var _remote_buffer_underrun_seconds: float = 0.0
@@ -41,9 +74,20 @@ var _remote_total_speed_error: float = 0.0
 var _remote_max_rendered_speed: float = 0.0
 var _remote_max_speed_error: float = 0.0
 var _remote_max_frame_distance: float = 0.0
-var _remote_rendered_speeds: Array[float] = []
-var _remote_speed_errors: Array[float] = []
-var _remote_frame_distances: Array[float] = []
+var _remote_total_correction_distance: float = 0.0
+var _remote_max_correction_distance: float = 0.0
+var _remote_total_correction_speed: float = 0.0
+var _remote_max_correction_speed: float = 0.0
+var _remote_total_playout_delay: float = 0.0
+var _remote_max_playout_delay: float = 0.0
+var _remote_total_target_playout_delay: float = 0.0
+var _remote_max_target_playout_delay: float = 0.0
+var _remote_rendered_speeds: FixedFloatSamples = null
+var _remote_speed_errors: FixedFloatSamples = null
+var _remote_frame_distances: FixedFloatSamples = null
+var _remote_correction_distances: FixedFloatSamples = null
+var _remote_correction_speeds: FixedFloatSamples = null
+var _remote_playout_delays: FixedFloatSamples = null
 var _remote_previous_position: Vector3 = Vector3.ZERO
 var _remote_has_previous_position: bool = false
 var _remote_was_stalled: bool = false
@@ -72,10 +116,14 @@ func start_remote_motion_collection(remote: RemoteEntity) -> bool:
 func stop_collection() -> void:
 	if enabled:
 		_stopped_usec = Time.get_ticks_usec()
+	if is_instance_valid(_remote_buffer):
+		_remote_rejected_stale_snapshot_count = \
+			_remote_buffer.get_rejected_stale_snapshot_count()
 	enabled = false
 	_disconnect_remote_buffer()
 
 func reset_collection() -> void:
+	_ensure_sample_storage()
 	_started_usec = Time.get_ticks_usec()
 	_stopped_usec = 0
 	_acknowledged_snapshot_count = 0
@@ -89,17 +137,22 @@ func reset_collection() -> void:
 	_max_ack_position_drift = 0.0
 	_total_body_correction_distance = 0.0
 	_max_body_correction_distance = 0.0
-	_ack_position_drifts.clear()
-	_body_correction_distances.clear()
+	_ack_position_drifts.reset()
+	_body_correction_distances.reset()
+	_dropped_metric_value_count = 0
 	_remote_entity_id = -1
 	_remote_render_sample_count = 0
 	_remote_motion_sample_count = 0
 	_remote_interpolated_sample_count = 0
+	_remote_extrapolated_sample_count = 0
 	_remote_buffer_underrun_sample_count = 0
 	_remote_stall_episode_count = 0
 	_remote_catch_up_episode_count = 0
+	_remote_hard_snap_count = 0
+	_remote_rejected_stale_snapshot_count = 0
 	_remote_observed_seconds = 0.0
 	_remote_expected_motion_seconds = 0.0
+	_remote_extrapolated_seconds = 0.0
 	_remote_stalled_seconds = 0.0
 	_remote_catch_up_seconds = 0.0
 	_remote_buffer_underrun_seconds = 0.0
@@ -109,9 +162,20 @@ func reset_collection() -> void:
 	_remote_max_rendered_speed = 0.0
 	_remote_max_speed_error = 0.0
 	_remote_max_frame_distance = 0.0
-	_remote_rendered_speeds.clear()
-	_remote_speed_errors.clear()
-	_remote_frame_distances.clear()
+	_remote_total_correction_distance = 0.0
+	_remote_max_correction_distance = 0.0
+	_remote_total_correction_speed = 0.0
+	_remote_max_correction_speed = 0.0
+	_remote_total_playout_delay = 0.0
+	_remote_max_playout_delay = 0.0
+	_remote_total_target_playout_delay = 0.0
+	_remote_max_target_playout_delay = 0.0
+	_remote_rendered_speeds.reset()
+	_remote_speed_errors.reset()
+	_remote_frame_distances.reset()
+	_remote_correction_distances.reset()
+	_remote_correction_speeds.reset()
+	_remote_playout_delays.reset()
 	_remote_previous_position = Vector3.ZERO
 	_remote_has_previous_position = false
 	_remote_was_stalled = false
@@ -132,7 +196,7 @@ func record_reconciliation(result: PlayerMovementReconciliation.Result) -> void:
 	_prediction_frame_sample_count += 1
 	_total_ack_position_drift += result.position_drift
 	_max_ack_position_drift = maxf(_max_ack_position_drift, result.position_drift)
-	_ack_position_drifts.append(result.position_drift)
+	_record_metric_value(_ack_position_drifts, result.position_drift)
 	_replayed_input_frame_count += result.replayed_count
 
 	if result.ignored_tiny_drift:
@@ -146,13 +210,15 @@ func record_reconciliation(result: PlayerMovementReconciliation.Result) -> void:
 		_max_body_correction_distance,
 		result.body_correction_distance
 	)
-	_body_correction_distances.append(result.body_correction_distance)
+	_record_metric_value(_body_correction_distances, result.body_correction_distance)
 
 func snapshot() -> Dictionary:
 	var duration_seconds: float = _duration_seconds()
 	return {
 		"enabled": enabled,
 		"duration_seconds": duration_seconds,
+		"metric_sample_capacity": MAX_METRIC_SAMPLE_COUNT,
+		"dropped_metric_value_count": _dropped_metric_value_count,
 		"acknowledged_snapshot_count": _acknowledged_snapshot_count,
 		"new_acknowledgement_count": (
 			_acknowledged_snapshot_count - _stale_acknowledgement_count
@@ -173,14 +239,14 @@ func snapshot() -> Dictionary:
 			_total_ack_position_drift,
 			_prediction_frame_sample_count
 		),
-		"p95_ack_position_drift": _percentile(_ack_position_drifts, 0.95),
+		"p95_ack_position_drift": _sample_percentile(_ack_position_drifts, 0.95),
 		"max_ack_position_drift": _max_ack_position_drift,
 		"total_body_correction_distance": _total_body_correction_distance,
 		"average_body_correction_distance": _average(
 			_total_body_correction_distance,
 			_correction_count
 		),
-		"p95_body_correction_distance": _percentile(
+		"p95_body_correction_distance": _sample_percentile(
 			_body_correction_distances,
 			0.95
 		),
@@ -189,14 +255,21 @@ func snapshot() -> Dictionary:
 		"remote_render_sample_count": _remote_render_sample_count,
 		"remote_motion_sample_count": _remote_motion_sample_count,
 		"remote_interpolated_sample_count": _remote_interpolated_sample_count,
+		"remote_extrapolated_sample_count": _remote_extrapolated_sample_count,
 		"remote_buffer_underrun_sample_count": _remote_buffer_underrun_sample_count,
 		"remote_stall_episode_count": _remote_stall_episode_count,
 		"remote_catch_up_episode_count": _remote_catch_up_episode_count,
 		"remote_motion_discontinuity_count": (
 			_remote_stall_episode_count + _remote_catch_up_episode_count
 		),
+		"remote_hard_snap_count": _remote_hard_snap_count,
 		"remote_observed_seconds": _remote_observed_seconds,
 		"remote_expected_motion_seconds": _remote_expected_motion_seconds,
+		"remote_extrapolated_seconds": _remote_extrapolated_seconds,
+		"remote_extrapolated_ratio": _float_ratio(
+			_remote_extrapolated_seconds,
+			_remote_observed_seconds
+		),
 		"remote_stalled_seconds": _remote_stalled_seconds,
 		"remote_stall_ratio": _float_ratio(
 			_remote_stalled_seconds,
@@ -217,47 +290,101 @@ func snapshot() -> Dictionary:
 			_remote_total_rendered_speed,
 			_remote_motion_sample_count
 		),
-		"remote_p95_rendered_speed": _percentile(_remote_rendered_speeds, 0.95),
+		"remote_p95_rendered_speed": _sample_percentile(_remote_rendered_speeds, 0.95),
 		"remote_max_rendered_speed": _remote_max_rendered_speed,
 		"remote_average_speed_error": _average(
 			_remote_total_speed_error,
 			_remote_motion_sample_count
 		),
-		"remote_p95_speed_error": _percentile(_remote_speed_errors, 0.95),
+		"remote_p95_speed_error": _sample_percentile(_remote_speed_errors, 0.95),
 		"remote_max_speed_error": _remote_max_speed_error,
-		"remote_p95_frame_distance": _percentile(_remote_frame_distances, 0.95),
+		"remote_p95_frame_distance": _sample_percentile(_remote_frame_distances, 0.95),
 		"remote_max_frame_distance": _remote_max_frame_distance,
+		"remote_average_correction_distance": _average(
+			_remote_total_correction_distance,
+			_remote_render_sample_count
+		),
+		"remote_p95_correction_distance": _sample_percentile(
+			_remote_correction_distances,
+			0.95
+		),
+		"remote_max_correction_distance": _remote_max_correction_distance,
+		"remote_average_correction_speed": _average(
+			_remote_total_correction_speed,
+			_remote_render_sample_count
+		),
+		"remote_p95_correction_speed": _sample_percentile(_remote_correction_speeds, 0.95),
+		"remote_max_correction_speed": _remote_max_correction_speed,
+		"remote_average_playout_delay": _average(
+			_remote_total_playout_delay,
+			_remote_render_sample_count
+		),
+		"remote_p95_playout_delay": _sample_percentile(_remote_playout_delays, 0.95),
+		"remote_max_playout_delay": _remote_max_playout_delay,
+		"remote_average_target_playout_delay": _average(
+			_remote_total_target_playout_delay,
+			_remote_render_sample_count
+		),
+		"remote_max_target_playout_delay": _remote_max_target_playout_delay,
+		"remote_rejected_stale_snapshot_count": _remote_rejected_stale_snapshot_count,
 	}
 
 func _on_remote_transform_rendered(
-	position: Vector3,
-	expected_velocity: Vector3,
-	render_mode: int,
-	delta: float
+	observation: RemoteInterpolationBuffer.RenderObservation
 ) -> void:
+	var delta: float = observation.delta
 	if not enabled or delta <= 0.0:
 		return
 
 	_remote_render_sample_count += 1
 	_remote_observed_seconds += delta
-	if render_mode == RemoteInterpolationBuffer.RenderMode.INTERPOLATING:
+	if observation.render_mode == RemoteInterpolationBuffer.RenderMode.INTERPOLATING:
 		_remote_interpolated_sample_count += 1
-	if render_mode == RemoteInterpolationBuffer.RenderMode.BUFFER_UNDERRUN:
+	if observation.render_mode == RemoteInterpolationBuffer.RenderMode.EXTRAPOLATING:
+		_remote_extrapolated_sample_count += 1
+		_remote_extrapolated_seconds += delta
+	if observation.render_mode == RemoteInterpolationBuffer.RenderMode.BUFFER_UNDERRUN:
 		_remote_buffer_underrun_sample_count += 1
 		_remote_buffer_underrun_seconds += delta
+	if observation.hard_snap_applied:
+		_remote_hard_snap_count += 1
+
+	_remote_total_correction_distance += observation.correction_distance
+	_remote_max_correction_distance = maxf(
+		_remote_max_correction_distance,
+		observation.correction_distance
+	)
+	_record_metric_value(_remote_correction_distances, observation.correction_distance)
+	_remote_total_correction_speed += observation.correction_speed
+	_remote_max_correction_speed = maxf(
+		_remote_max_correction_speed,
+		observation.correction_speed
+	)
+	_record_metric_value(_remote_correction_speeds, observation.correction_speed)
+	_remote_total_playout_delay += observation.playout_delay_seconds
+	_remote_max_playout_delay = maxf(
+		_remote_max_playout_delay,
+		observation.playout_delay_seconds
+	)
+	_record_metric_value(_remote_playout_delays, observation.playout_delay_seconds)
+	_remote_total_target_playout_delay += observation.target_playout_delay_seconds
+	_remote_max_target_playout_delay = maxf(
+		_remote_max_target_playout_delay,
+		observation.target_playout_delay_seconds
+	)
 
 	if not _remote_has_previous_position:
-		_remote_previous_position = position
+		_remote_previous_position = observation.position
 		_remote_has_previous_position = true
 		return
 
-	var frame_distance: float = position.distance_to(_remote_previous_position)
+	var frame_distance: float = observation.position.distance_to(_remote_previous_position)
 	var rendered_speed: float = frame_distance / delta
-	var expected_speed: float = expected_velocity.length()
-	_remote_previous_position = position
+	var expected_speed: float = observation.expected_velocity.length()
+	_remote_previous_position = observation.position
 	_remote_total_rendered_distance += frame_distance
 	_remote_max_frame_distance = maxf(_remote_max_frame_distance, frame_distance)
-	_remote_frame_distances.append(frame_distance)
+	_record_metric_value(_remote_frame_distances, frame_distance)
 
 	var expected_movement: bool = expected_speed > remote_moving_speed_epsilon
 	if not expected_movement:
@@ -269,14 +396,14 @@ func _on_remote_transform_rendered(
 	_remote_expected_motion_seconds += delta
 	_remote_total_rendered_speed += rendered_speed
 	_remote_max_rendered_speed = maxf(_remote_max_rendered_speed, rendered_speed)
-	_remote_rendered_speeds.append(rendered_speed)
+	_record_metric_value(_remote_rendered_speeds, rendered_speed)
 	var speed_error: float = absf(rendered_speed - expected_speed)
 	_remote_total_speed_error += speed_error
 	_remote_max_speed_error = maxf(_remote_max_speed_error, speed_error)
-	_remote_speed_errors.append(speed_error)
+	_record_metric_value(_remote_speed_errors, speed_error)
 
 	var stalled: bool = (
-		render_mode == RemoteInterpolationBuffer.RenderMode.BUFFER_UNDERRUN
+		observation.render_mode == RemoteInterpolationBuffer.RenderMode.BUFFER_UNDERRUN
 		or rendered_speed <= expected_speed * remote_stall_speed_ratio
 	)
 	var catching_up: bool = rendered_speed >= expected_speed * remote_catch_up_speed_ratio
@@ -324,10 +451,23 @@ func _average(total: float, count: int) -> float:
 		return 0.0
 	return total / float(count)
 
-func _percentile(values: Array[float], percentile: float) -> float:
-	if values.is_empty():
+func _ensure_sample_storage() -> void:
+	if _ack_position_drifts != null:
+		return
+	_ack_position_drifts = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
+	_body_correction_distances = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
+	_remote_rendered_speeds = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
+	_remote_speed_errors = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
+	_remote_frame_distances = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
+	_remote_correction_distances = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
+	_remote_correction_speeds = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
+	_remote_playout_delays = FixedFloatSamples.new(MAX_METRIC_SAMPLE_COUNT)
+
+func _record_metric_value(samples: FixedFloatSamples, value: float) -> void:
+	if samples == null or not samples.record(value):
+		_dropped_metric_value_count += 1
+
+func _sample_percentile(samples: FixedFloatSamples, percentile: float) -> float:
+	if samples == null:
 		return 0.0
-	var sorted_values: Array[float] = values.duplicate()
-	sorted_values.sort()
-	var index: int = ceili(percentile * float(sorted_values.size())) - 1
-	return sorted_values[clampi(index, 0, sorted_values.size() - 1)]
+	return samples.percentile(percentile)

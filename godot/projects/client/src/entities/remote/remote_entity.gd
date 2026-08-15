@@ -2,6 +2,7 @@ class_name RemoteEntity
 extends BaseEntity
 
 @onready var body: RemoteBody = %Body
+@onready var model: Node3D = %Model
 @onready var equipment: Equipment = $Equipment
 @onready var interpolation_buffer: RemoteInterpolationBuffer = %RemoteInterpolationBuffer
 
@@ -20,4 +21,4 @@ func push_movement_snapshot(snapshot: MovementSnapshotMsg.EntitySnapshot) -> voi
 func apply_remote_transform(position: Vector3, rotation: Quaternion) -> void:
 	var remote_transform = Transform3D(Basis(rotation), position)
 	body.global_transform = remote_transform
-	%Model.global_transform = remote_transform
+	model.global_transform = remote_transform
