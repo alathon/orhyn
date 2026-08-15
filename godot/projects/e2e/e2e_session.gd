@@ -25,9 +25,13 @@ var failure_details: Dictionary = {}
 
 var _ingame_screen: IngameScreen = null
 var _game_server_api: GameServerAPI = null
+var _game_events: GameEventBus = null
 var _entity_spawner: ClientEntitySpawner = null
 var _client_actions: ClientActions = null
 var _action_result_codes: Dictionary[int, int] = {}
+var _entity_spawned_events: Array[EntitySpawnedGameEvent] = []
+var _entity_spawn_position_observations: Dictionary[int, Dictionary] = {}
+var _equipment_changed_events: Array[EntityEquipmentChangedGameEvent] = []
 var _movement_snapshots: Array[MovementSnapshotMsg] = []
 
 func start(config: Dictionary = {}) -> bool:
@@ -74,6 +78,15 @@ func start(config: Dictionary = {}) -> bool:
 	return entered_world
 
 func close() -> void:
+	if _game_events != null:
+		_game_events.unsubscribe(
+			GameEvent.TYPE_ENTITY_SPAWNED,
+			_on_entity_spawned
+		)
+		_game_events.unsubscribe(
+			GameEvent.TYPE_ENTITY_EQUIPMENT_CHANGED,
+			_on_entity_equipment_changed
+		)
 	if _game_server_api != null:
 		_game_server_api.disconnect_from_server()
 	if orchestrator_api != null:
@@ -88,6 +101,83 @@ func get_entity(entity_id: int) -> BaseEntity:
 	if _entity_spawner == null:
 		return null
 	return _entity_spawner.get_player(entity_id)
+
+func get_entity_ids() -> Array[int]:
+	var entity_ids: Array[int] = []
+	if _entity_spawner == null:
+		return entity_ids
+	for entity_id: int in _entity_spawner.get_players().keys():
+		entity_ids.append(entity_id)
+	entity_ids.sort()
+	return entity_ids
+
+func wait_for_exact_entity_ids(
+		expected_entity_ids: Array[int],
+		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> bool:
+	var sorted_expected_ids: Array[int] = expected_entity_ids.duplicate()
+	sorted_expected_ids.sort()
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		if get_entity_ids() == sorted_expected_ids:
+			return true
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return false
+
+func wait_for_entity_spawned_event(
+		entity_id: int,
+		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> EntitySpawnedGameEvent:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		var event: EntitySpawnedGameEvent = _find_entity_spawned_event(entity_id)
+		if event != null:
+			return event
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return null
+
+func wait_for_entities_near_spawn_positions(
+		entity_ids: Array[int],
+		max_distance: float,
+		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> bool:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		var all_positions_match: bool = true
+		for entity_id: int in entity_ids:
+			var observation: Dictionary = _entity_spawn_position_observations.get(entity_id, {})
+			if observation.is_empty() or not bool(observation.get("has_entity", false)):
+				all_positions_match = false
+				break
+			if float(observation.get("difference", -1.0)) > max_distance:
+				all_positions_match = false
+				break
+		if all_positions_match:
+			return true
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return false
+
+func get_entity_spawn_position_details(entity_ids: Array[int]) -> Array[Dictionary]:
+	var details: Array[Dictionary] = []
+	for entity_id: int in entity_ids:
+		var observation: Dictionary = _entity_spawn_position_observations.get(entity_id, {})
+		var actual_position: Vector3 = observation.get("actual_position", Vector3.ZERO)
+		var spawn_position: Vector3 = observation.get("spawn_position", Vector3.ZERO)
+		details.append({
+			"entity_id": entity_id,
+			"has_spawn_event": not observation.is_empty(),
+			"has_entity": bool(observation.get("has_entity", false)),
+			"spawn_position": str(spawn_position),
+			"actual_position": str(actual_position),
+			"difference": float(observation.get("difference", -1.0)),
+		})
+	return details
 
 func wait_for_entity(
 		entity_id: int,
@@ -171,6 +261,26 @@ func wait_for_entity_equipped(
 			var item: EquippableItem = equipment.get_equipped(slot_id)
 			if item != null and item.instance_id == item_instance_id:
 				return item
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return null
+
+func clear_equipment_changed_events() -> void:
+	_equipment_changed_events.clear()
+
+func wait_for_entity_equipment_changed_event(
+		entity_id: int,
+		min_equipment_revision: int,
+		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> EntityEquipmentChangedGameEvent:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		for event: EntityEquipmentChangedGameEvent in _equipment_changed_events:
+			if event.entity_id != entity_id:
+				continue
+			if event.equipment_revision >= min_equipment_revision:
+				return event
 		if _game_server_api != null:
 			_game_server_api.poll()
 		await get_tree().process_frame
@@ -433,6 +543,18 @@ func _load_ingame_screen() -> bool:
 		})
 	add_child(_ingame_screen)
 
+	_game_events = _ingame_screen.game_events
+	if _game_events == null:
+		return _fail("load_ingame_screen", "In-game screen has no GameEventBus.")
+	_game_events.subscribe(
+		GameEvent.TYPE_ENTITY_SPAWNED,
+		_on_entity_spawned
+	)
+	_game_events.subscribe(
+		GameEvent.TYPE_ENTITY_EQUIPMENT_CHANGED,
+		_on_entity_equipment_changed
+	)
+
 	_game_server_api = _ingame_screen.api
 	if _game_server_api == null:
 		return _fail("load_ingame_screen", "In-game screen has no GameServerAPI.")
@@ -505,10 +627,31 @@ func _on_action_resolved(
 		result_code: int) -> void:
 	_action_result_codes[request_id] = result_code
 
+func _on_entity_spawned(event: EntitySpawnedGameEvent) -> void:
+	_entity_spawned_events.append(event)
+	var entity: BaseEntity = get_entity(event.entity_id)
+	var actual_position: Vector3 = get_entity_position(event.entity_id) \
+		if entity != null else Vector3.ZERO
+	_entity_spawn_position_observations[event.entity_id] = {
+		"has_entity": entity != null,
+		"spawn_position": event.position,
+		"actual_position": actual_position,
+		"difference": actual_position.distance_to(event.position) if entity != null else -1.0,
+	}
+
+func _on_entity_equipment_changed(event: EntityEquipmentChangedGameEvent) -> void:
+	_equipment_changed_events.append(event)
+
 func _on_movement_snapshot_received(snapshot: MovementSnapshotMsg) -> void:
 	_movement_snapshots.append(snapshot)
 	if _movement_snapshots.size() > 64:
 		_movement_snapshots.pop_front()
+
+func _find_entity_spawned_event(entity_id: int) -> EntitySpawnedGameEvent:
+	for event: EntitySpawnedGameEvent in _entity_spawned_events:
+		if event.entity_id == entity_id:
+			return event
+	return null
 
 func _find_entity_snapshot(
 		snapshot: MovementSnapshotMsg,

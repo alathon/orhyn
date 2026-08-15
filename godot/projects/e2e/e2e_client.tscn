@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://projects/e2e/e2e_client.gd" id="1_e2e_client"]
 [ext_resource type="Script" path="res://projects/e2e/e2e_session.gd" id="2_e2e_session"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://projects/e2e/tests/movement_flow_test.gd" id="8_movement_test"]
 [ext_resource type="Script" path="res://projects/e2e/tests/multi_client_actor_test.gd" id="9_multi_actor"]
 [ext_resource type="Script" path="res://projects/e2e/tests/multi_client_observer_test.gd" id="10_multi_observer"]
+[ext_resource type="Script" path="res://projects/e2e/tests/multi_client_joiner_test.gd" id="11_multi_joiner"]
 
 [node name="E2EClient" type="Node"]
 script = ExtResource("1_e2e_client")
@@ -47,3 +48,8 @@ suite_name = "multi_client_actor"
 script = ExtResource("10_multi_observer")
 test_name = "multi_client_observer"
 suite_name = "multi_client_observer"
+
+[node name="MultiClientJoinerTest" type="Node" parent="E2ETestRunner"]
+script = ExtResource("11_multi_joiner")
+test_name = "multi_client_joiner"
+suite_name = "multi_client_joiner"

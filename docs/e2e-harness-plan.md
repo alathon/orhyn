@@ -268,11 +268,17 @@ calculating exact physics results independently.
 
 ### Milestone 4: Multi-Client Flow
 
-Add multi-client coverage after single-client flows are stable. Start two full
-headless Godot client processes, each with its own real `IngameScreen`, against
-the same zone:
+Add multi-client coverage after single-client flows are stable. Start three
+full headless Godot client processes, each with its own real `IngameScreen`,
+against the same zone:
 
-- Enter the same zone with an actor client and an observer client.
+- Enter client A, then client B, and assert both receive the appropriate
+  server-authoritative player spawn events, place each entity near its event's
+  spawn position, and contain exactly A+B.
+- Enter client C and assert A and B receive C's player spawn event, C receives
+  A and B's player spawn events, all clients place every entity near the
+  corresponding event position, and all three contain exactly A+B+C with their
+  peers represented as remote entities.
 - Move one client.
 - Assert the other client observes the remote entity update.
 - Compare the authoritative actor position decoded by both clients for the same
@@ -280,15 +286,20 @@ the same zone:
 - After movement settles, assert the actor's reconciled body and the observer's
   interpolated remote body converge near that authoritative position.
 - Exercise equipment changes and entity lifecycle replication across clients.
+- Assert the observer receives the actor's server-authoritative
+  `EntityEquipmentChangedGameEvent` with the expected entity, revision, slot,
+  operation, item instance, and template path before checking applied state.
 
 ### Current Implementation Status
 
 Milestones 1 through 4 are implemented. `make e2e` runs the single-client
-gameplay cases, then starts separate actor and observer Godot processes for the
-multi-client flow. The observer verifies the actor's remote spawn,
-same-tick authoritative movement, rendered-position convergence, replicated
-equipment, and despawn. Focused movement tests verify that out-of-range diagonal
-input cannot exceed the server-owned movement speed.
+gameplay cases, then starts client A, client B, and client C as separate Godot
+processes for the multi-client flow. Staged barriers verify the exact two-client
+and three-client spawn events, spawn positions, remote entities, and entity
+registries before the observer verifies same-tick authoritative movement,
+rendered-position convergence, replicated equipment event and state, and
+despawn. Focused movement tests verify that out-of-range diagonal input cannot
+exceed the server-owned movement speed.
 
 ## Failure Handling
 

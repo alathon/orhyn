@@ -16,7 +16,7 @@ usage() {
     cat <<EOF
 Usage: $0 [--zone ZONE_ID] [--username USERNAME] [--timeout SECONDS]
 
-Runs the single-client gameplay suite followed by the two-client replication
+Runs the single-client gameplay suite followed by the three-client replication
 suite against fresh orchestrator and zone processes. Artifacts are written
 under logs/e2e/.
 EOF
@@ -189,6 +189,7 @@ gameplay_result_file="$artifact_dir/gameplay-result.json"
 coordination_dir="$artifact_dir/multi-client"
 observer_result_file="$artifact_dir/multi-client-observer-result.json"
 actor_result_file="$artifact_dir/multi-client-actor-result.json"
+joiner_result_file="$artifact_dir/multi-client-joiner-result.json"
 
 mkdir -p "$coordination_dir"
 
@@ -329,6 +330,39 @@ supervisor_start \
     "--result-file" "$actor_result_file"
 actor_pid="$started_pid"
 
+if ! wait_for_file \
+    "first two clients" \
+    "$coordination_dir/first-two-clients-verified.json" \
+    "$observer_pid" \
+    "$suite_timeout_seconds"; then
+    status=1
+    trap - EXIT
+    supervisor_stop_all
+    show_result "Multi-client actor" "$actor_result_file" || true
+    show_result "Multi-client observer" "$observer_result_file" || true
+    echo "E2E artifacts: $artifact_dir"
+    exit "$status"
+fi
+
+supervisor_start \
+    "multi-client-joiner" \
+    "$artifact_dir/multi-client-joiner.log" \
+    "$project_root" \
+    timeout "${suite_timeout_seconds}s" \
+    env "ORHYN_GODOT_RUNTIME_DIR=$artifact_dir/runtime-multi-client-joiner" \
+    "$script_dir/godot-sandboxed.sh" \
+    "--headless" \
+    "--path" "./godot" \
+    "--scene" "res://projects/e2e/e2e_client.tscn" \
+    "--" \
+    "--orchestrator-url" "ws://127.0.0.1:$orchestrator_client_port/ws" \
+    "--username" "e2e_joiner" \
+    "--zone" "$zone_id" \
+    "--suite" "multi_client_joiner" \
+    "--coordination-dir" "$coordination_dir" \
+    "--result-file" "$joiner_result_file"
+joiner_pid="$started_pid"
+
 set +e
 wait "$actor_pid"
 actor_status="$?"
@@ -340,6 +374,7 @@ if (( actor_status != 0 )); then
     supervisor_stop_all
     show_result "Multi-client actor" "$actor_result_file" || true
     show_result "Multi-client observer" "$observer_result_file" || true
+    show_result "Multi-client joiner" "$joiner_result_file" || true
     echo "E2E artifacts: $artifact_dir"
     exit "$status"
 fi
@@ -352,10 +387,22 @@ _supervisor_remove_pid "$observer_pid"
 if (( observer_status != 0 )); then
     status="$observer_status"
 fi
+
+set +e
+wait "$joiner_pid"
+joiner_status="$?"
+set -e
+_supervisor_remove_pid "$joiner_pid"
+if (( joiner_status != 0 )); then
+    status="$joiner_status"
+fi
 if ! show_result "Multi-client actor" "$actor_result_file"; then
     status=1
 fi
 if ! show_result "Multi-client observer" "$observer_result_file"; then
+    status=1
+fi
+if ! show_result "Multi-client joiner" "$joiner_result_file"; then
     status=1
 fi
 

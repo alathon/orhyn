@@ -3,9 +3,16 @@ extends RefCounted
 
 const ACTOR_READY_FILE: String = "actor-ready.json"
 const ACTOR_AUTHORITATIVE_MOVEMENT_FILE: String = "actor-authoritative-movement.json"
+const ACTOR_SEES_OBSERVER_FILE: String = "actor-sees-observer.json"
+const ACTOR_SEES_JOINER_FILE: String = "actor-sees-joiner.json"
 const OBSERVER_READY_FILE: String = "observer-ready.json"
 const OBSERVER_SEES_ACTOR_FILE: String = "observer-sees-actor.json"
+const OBSERVER_SEES_JOINER_FILE: String = "observer-sees-joiner.json"
 const OBSERVER_ACTIONS_OBSERVED_FILE: String = "observer-actions-observed.json"
+const FIRST_TWO_CLIENTS_VERIFIED_FILE: String = "first-two-clients-verified.json"
+const JOINER_READY_FILE: String = "joiner-ready.json"
+const JOINER_SEES_EXISTING_CLIENTS_FILE: String = "joiner-sees-existing-clients.json"
+const THREE_CLIENTS_READY_FILE: String = "three-clients-ready.json"
 
 static func write_json(path: String, payload: Dictionary) -> Error:
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
