@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemTemplate" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://projects/common/src/items/item_template.gd" id="1_template"]
+[ext_resource type="Script" path="res://projects/common/src/items/equippable.gd" id="2_equippable"]
+
+[sub_resource type="Resource" id="Resource_equippable"]
+script = ExtResource("2_equippable")
+slots = Array[int]([0])
+
+[resource]
+script = ExtResource("1_template")
+template_id = &"e2e_helmet"
+display_name = "E2E Helmet"
+equippable = SubResource("Resource_equippable")

@@ -2,13 +2,15 @@ extends GutTest
 
 var _received_events: Array[GameEvent] = []
 var _received_snapshot: MovementSnapshotMsg = null
-var _received_equipment_action_result: EntityEquipmentActionResultMsg = null
+var _received_action_request_id: int = -1
+var _received_action_result_code: int = -1
 
 
 func before_each() -> void:
 	_received_events.clear()
 	_received_snapshot = null
-	_received_equipment_action_result = null
+	_received_action_request_id = -1
+	_received_action_result_code = -1
 
 
 func test_routes_entity_lifecycle_packets_to_game_events() -> void:
@@ -29,6 +31,8 @@ func test_routes_entity_lifecycle_packets_to_game_events() -> void:
 	assert_true(_received_events[0] is ControlledEntityAssignedGameEvent)
 	assert_true(_received_events[1] is EntityDespawnedGameEvent)
 	assert_true(_received_events[2] is EntitySpawnedGameEvent)
+	for event: GameEvent in _received_events:
+		assert_eq(event.source, GameEvent.Source.SERVER_AUTHORITATIVE)
 
 
 func test_routes_character_loaded_packets_to_game_events() -> void:
@@ -37,7 +41,7 @@ func test_routes_character_loaded_packets_to_game_events() -> void:
 
 	var err: Error = ClientProtocolRouter.route(
 		GameServerAPI.CHANNEL_ZONE_SESSION,
-		CharacterLoadedMsg.encode(11, 22, "Player", "zone_forest", "Wizard", 7),
+		CharacterLoadedCodec.encode(11, 22, "Player", "zone_forest", "Wizard", 7),
 		null,
 		bus
 	)
@@ -48,6 +52,7 @@ func test_routes_character_loaded_packets_to_game_events() -> void:
 	var event: CharacterLoadedGameEvent = _received_events[0] as CharacterLoadedGameEvent
 	assert_eq(event.character_id, 11)
 	assert_eq(event.entity_id, 22)
+	assert_eq(event.source, GameEvent.Source.SERVER_AUTHORITATIVE)
 
 
 func test_routes_entity_equipment_changed_packets_to_game_events() -> void:
@@ -56,9 +61,9 @@ func test_routes_entity_equipment_changed_packets_to_game_events() -> void:
 
 	var err: Error = ClientProtocolRouter.route(
 		GameServerAPI.CHANNEL_ENTITY_LIFECYCLE,
-		EntityEquipmentChangedMsg.encode(7, 3, [{
+		EntityEquipmentChangedCodec.encode(7, 3, [{
 			"slot_id": Equippable.SlotId.Right_Hand,
-			"operation": EntityEquipmentChangedMsg.OPERATION_SET,
+			"operation": EntityEquipmentChangedGameEvent.OPERATION_SET,
 			"item_instance_id": "weapon_1",
 			"template_resource_path": "res://items/sword.tres",
 		}]),
@@ -73,6 +78,7 @@ func test_routes_entity_equipment_changed_packets_to_game_events() -> void:
 	assert_eq(event.entity_id, 7)
 	assert_eq(event.equipment_revision, 3)
 	assert_eq(event.changes[0].get("item_instance_id"), "weapon_1")
+	assert_eq(event.source, GameEvent.Source.SERVER_AUTHORITATIVE)
 
 
 func test_routes_movement_snapshot_packets_to_api_signal() -> void:
@@ -98,7 +104,7 @@ func test_routes_movement_snapshot_packets_to_api_signal() -> void:
 
 func test_routes_equipment_action_result_packets_to_api_signal() -> void:
 	var api: GameServerAPI = autofree(GameServerAPI.new()) as GameServerAPI
-	api.equipment_action_result_received.connect(_record_equipment_action_result)
+	api.action_result_received.connect(_record_action_result)
 
 	var err: Error = ClientProtocolRouter.route(
 		GameServerAPI.CHANNEL_ENTITY_LIFECYCLE,
@@ -113,10 +119,8 @@ func test_routes_equipment_action_result_packets_to_api_signal() -> void:
 	)
 
 	assert_eq(err, OK)
-	assert_true(_received_equipment_action_result != null)
-	assert_eq(_received_equipment_action_result.request_id, 18)
-	assert_eq(_received_equipment_action_result.entity_id, 7)
-	assert_eq(_received_equipment_action_result.equipment_revision, 4)
+	assert_eq(_received_action_request_id, 18)
+	assert_eq(_received_action_result_code, EntityEquipmentActionResultMsg.RESULT_OK)
 
 
 func _record_event(event: GameEvent) -> void:
@@ -127,19 +131,18 @@ func _record_snapshot(snapshot: MovementSnapshotMsg) -> void:
 	_received_snapshot = snapshot
 
 
-func _record_equipment_action_result(result: EntityEquipmentActionResultMsg) -> void:
-	_received_equipment_action_result = result
+func _record_action_result(request_id: int, result_code: int) -> void:
+	_received_action_request_id = request_id
+	_received_action_result_code = result_code
 
 
 func _make_lifecycle_packet() -> PackedByteArray:
-	var despawn: EntityLifecycleMsg.DespawnRecord = EntityLifecycleMsg.DespawnRecord.new()
-	despawn.entity_id = 3
-	despawn.reason = 9
+	var despawn: EntityDespawnedGameEvent = EntityDespawnedGameEvent.new(3, 9)
+	var spawn: EntitySpawnedGameEvent = EntitySpawnedGameEvent.new(
+		7,
+		EntitySpawnedGameEvent.ENTITY_KIND_PLAYER,
+		Vector3(1.0, 2.0, 3.0),
+		Quaternion.IDENTITY
+	)
 
-	var spawn: EntityLifecycleMsg.SpawnRecord = EntityLifecycleMsg.SpawnRecord.new()
-	spawn.entity_id = 7
-	spawn.entity_kind = EntityLifecycleMsg.EntityKind.Player
-	spawn.position = Vector3(1.0, 2.0, 3.0)
-	spawn.rotation = Quaternion.IDENTITY
-
-	return EntityLifecycleMsg.encode([spawn], [despawn], 7)
+	return EntityLifecycleCodec.encode([spawn], [despawn], 7)

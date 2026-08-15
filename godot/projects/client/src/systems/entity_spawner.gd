@@ -3,6 +3,8 @@ extends Node
 
 signal entity_spawned(entity: BaseEntity)
 signal entity_despawned(entity_id: int)
+signal local_player_spawned(player: Player)
+signal local_player_despawned(entity_id: int)
 
 @export var zone_container: ClientZoneContainer
 @export var game_events: GameEventBus
@@ -87,13 +89,16 @@ func despawn_entity(entity_id: int) -> void:
 		return
 
 	entities.erase(entity_id)
-	if player == _local_player:
+	var was_local_player: bool = player == _local_player
+	if was_local_player:
 		_local_player = null
 		_local_player_id = -1
 
 	player.queue_free()
 	print("Despawned entity=%d" % entity_id)
 	entity_despawned.emit(entity_id)
+	if was_local_player:
+		local_player_despawned.emit(entity_id)
 
 func _set_local_player_id(entity_id: int) -> void:
 	if _local_player_id == entity_id:
@@ -126,6 +131,7 @@ func _spawn_local_player(spawn: EntitySpawnedGameEvent) -> Player:
 	_apply_equipment_snapshot(player, spawn.equipment_entries, spawn.equipment_revision)
 
 	print("Spawned local player entity=%d" % _local_player_id)
+	local_player_spawned.emit(player)
 	entity_spawned.emit(player)
 	return player
 
@@ -168,13 +174,16 @@ func _apply_equipment_changes(
 
 	for change: Dictionary in changes:
 		var slot_id: Equippable.SlotId = int(change.get("slot_id", 0))
-		var operation: int = int(change.get("operation", EntityEquipmentChangedMsg.OPERATION_UNSET))
+		var operation: int = int(change.get(
+			"operation",
+			EntityEquipmentChangedGameEvent.OPERATION_UNSET
+		))
 		match operation:
-			EntityEquipmentChangedMsg.OPERATION_SET:
+			EntityEquipmentChangedGameEvent.OPERATION_SET:
 				var item: EquippableItem = _make_equipment_item(change)
 				if item != null:
 					equipment.set_equipped(item, slot_id)
-			EntityEquipmentChangedMsg.OPERATION_UNSET:
+			EntityEquipmentChangedGameEvent.OPERATION_UNSET:
 				equipment.unset_equipped(slot_id)
 			_:
 				push_warning("Ignoring unknown equipment operation: %d" % operation)
@@ -216,9 +225,12 @@ func _set_entities_container(entities_node: Node) -> void:
 	entities_container = entities_node
 
 func _reset_spawned_entities() -> void:
+	var previous_local_player_id: int = _local_player_id
 	for entity: BaseEntity in entities.values():
 		if entity != null:
 			entity.queue_free()
 	entities.clear()
 	_local_player = null
 	_local_player_id = -1
+	if previous_local_player_id >= 0:
+		local_player_despawned.emit(previous_local_player_id)

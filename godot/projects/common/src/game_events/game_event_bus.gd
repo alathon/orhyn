@@ -1,6 +1,13 @@
 class_name GameEventBus
 extends Node
 
+enum LogLevel {
+	NONE,
+	DEBUG,
+}
+
+@export var log_level: LogLevel = LogLevel.NONE
+
 var _subscribers_by_type: Array = []
 var _next_local_sequence: int = 1
 
@@ -34,13 +41,16 @@ func publish(event: GameEvent) -> void:
 	if event == null or event.type <= GameEvent.TYPE_NONE or event.type >= GameEvent.TYPE_COUNT:
 		return
 
-	var subscribers: Array = _subscribers_by_type[event.type]
-	if subscribers.is_empty():
-		return
-
 	if event.local_sequence <= 0:
 		event.local_sequence = _next_local_sequence
 		_next_local_sequence += 1
+
+	if log_level == LogLevel.DEBUG:
+		_log_event(event)
+
+	var subscribers: Array = _subscribers_by_type[event.type]
+	if subscribers.is_empty():
+		return
 
 	for i in subscribers.size():
 		var callback: Callable = subscribers[i]
@@ -55,3 +65,7 @@ func clear_subscribers() -> void:
 
 func _is_valid_event_type(event_type: int) -> bool:
 	return event_type > GameEvent.TYPE_NONE and event_type < GameEvent.TYPE_COUNT
+
+
+func _log_event(event: GameEvent) -> void:
+	Log.debug("area=GameEventBus message=published event=%s" % event.toString())

@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://ljrqooiomv11"]
+[gd_scene load_steps=10 format=3 uid="uid://ljrqooiomv11"]
 
 [ext_resource type="Script" uid="uid://fv10dwsah2od" path="res://projects/client/src/screens/ingame/ingame_screen.gd" id="1_ingame_screen"]
 [ext_resource type="Script" uid="uid://cnq2s61glph30" path="res://projects/client/src/systems/game_systems.gd" id="2_game_systems"]
@@ -8,12 +8,15 @@
 [ext_resource type="PackedScene" uid="uid://drt7o4vcdutmn" path="res://projects/client/src/entities/remote/remote_entity.tscn" id="6_remote_entity"]
 [ext_resource type="Script" uid="uid://dcmh1ni873f7k" path="res://projects/client/src/client_zone_container.gd" id="7_zone_container"]
 [ext_resource type="Script" path="res://projects/common/src/game_events/game_event_bus.gd" id="8_game_event_bus"]
+[ext_resource type="Script" path="res://projects/client/src/systems/client_actions.gd" id="9_client_actions"]
 
-[node name="IngameScreen" type="Node3D" unique_id=239629701 node_paths=PackedStringArray("api", "zone_container", "game_events")]
+[node name="IngameScreen" type="Node3D" unique_id=239629701 node_paths=PackedStringArray("api", "zone_container", "game_events", "entity_spawner", "client_actions")]
 script = ExtResource("1_ingame_screen")
 api = NodePath("GameSystems/API")
 zone_container = NodePath("ZoneContainer")
 game_events = NodePath("GameSystems/GameEvents")
+entity_spawner = NodePath("GameSystems/EntitySpawner")
+client_actions = NodePath("GameSystems/ClientActions")
 
 [node name="GameSystems" type="Node" parent="." unique_id=1368878515]
 unique_name_in_owner = true
@@ -22,6 +25,7 @@ script = ExtResource("2_game_systems")
 [node name="GameEvents" type="Node" parent="GameSystems"]
 unique_name_in_owner = true
 script = ExtResource("8_game_event_bus")
+log_level = 1
 
 [node name="API" type="Node" parent="GameSystems" unique_id=1829278941 node_paths=PackedStringArray("game_events")]
 unique_name_in_owner = true
@@ -36,6 +40,12 @@ zone_container = NodePath("../../ZoneContainer")
 game_events = NodePath("../GameEvents")
 player_entity_scene = ExtResource("5_player_entity")
 remote_entity_scene = ExtResource("6_remote_entity")
+
+[node name="ClientActions" type="Node" parent="GameSystems" node_paths=PackedStringArray("api", "entity_spawner")]
+unique_name_in_owner = true
+script = ExtResource("9_client_actions")
+api = NodePath("../API")
+entity_spawner = NodePath("../EntitySpawner")
 
 [node name="ZoneContainer" type="Node" parent="." unique_id=1803723499]
 unique_name_in_owner = true

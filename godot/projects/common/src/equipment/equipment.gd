@@ -14,7 +14,6 @@ func can_equip(item: EquippableItem, slot_id: Equippable.SlotId) -> bool:
 			and item.template.equippable != null \
 			and item.template.equippable.slots.has(slot_id)
 
-
 func get_equipped(slot_id: Equippable.SlotId) -> EquippableItem:
 	return _equipment.get(slot_id, null) as EquippableItem
 

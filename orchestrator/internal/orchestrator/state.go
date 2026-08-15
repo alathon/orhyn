@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -413,10 +414,17 @@ func (s *state) healthSnapshot() map[string]interface{} {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	zoneIDs := make([]string, 0, len(s.zones))
+	for zoneID := range s.zones {
+		zoneIDs = append(zoneIDs, zoneID)
+	}
+	sort.Strings(zoneIDs)
+
 	return map[string]interface{}{
 		"game_server_port":  s.cfg.GameServerPort,
 		"client_port":       s.cfg.ClientPort,
 		"registered_zones":  len(s.zones),
+		"zone_ids":          zoneIDs,
 		"game_server_peers": len(s.gamePeers),
 		"client_peers":      len(s.clientPeers),
 		"pending_transfers": len(s.pendingTransfers),

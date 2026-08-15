@@ -194,12 +194,6 @@ func send_entity_lifecycle(peer_id: int, bytes: PackedByteArray) -> Error:
 
 	return peer.send(CHANNEL_ENTITY_LIFECYCLE, bytes, ENetPacketPeer.FLAG_RELIABLE)
 
-func send_entity_equipment_changed(peer_id: int, bytes: PackedByteArray) -> Error:
-	return send_entity_lifecycle(peer_id, bytes)
-
-func send_entity_equipment_action_result(peer_id: int, bytes: PackedByteArray) -> Error:
-	return send_entity_lifecycle(peer_id, bytes)
-
 func send_character_loaded(peer_id: int, bytes: PackedByteArray) -> Error:
 	var peer: ENetPacketPeer = _peers_by_id.get(peer_id) as ENetPacketPeer
 	if peer == null:
@@ -214,9 +208,6 @@ func broadcast_entity_lifecycle(bytes: PackedByteArray, excluded_peer_ids: Array
 		if excluded_peer_ids.has(int(peer_id)):
 			continue
 		send_entity_lifecycle(int(peer_id), bytes)
-
-func broadcast_entity_equipment_changed(bytes: PackedByteArray, excluded_peer_ids: Array[int] = []) -> void:
-	broadcast_entity_lifecycle(bytes, excluded_peer_ids)
 
 func is_listening() -> bool:
 	return _is_listening

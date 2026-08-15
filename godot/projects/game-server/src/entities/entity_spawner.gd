@@ -89,16 +89,16 @@ func _on_player_disconnected(peer_id: int) -> void:
 	print("Removed server player entity=%d for peer %d" % [entity_id, peer_id])
 
 func _send_initial_lifecycle(peer_id: int, controlled_entity_id: int) -> void:
-	var spawns: Array[EntityLifecycleMsg.SpawnRecord] = []
+	var spawns: Array[EntitySpawnedGameEvent] = []
 	for player: ServerPlayerEntity in entity_tracker.get_players().values():
-		spawns.append(_make_spawn_record(player))
+		spawns.append(_make_spawn_event(player))
 
-	var bytes: PackedByteArray = EntityLifecycleMsg.encode(spawns, [], controlled_entity_id)
+	var bytes: PackedByteArray = EntityLifecycleCodec.encode(spawns, [], controlled_entity_id)
 	network.send_entity_lifecycle(peer_id, bytes)
 
 func _send_character_loaded(peer_id: int, character_id: int, entity_id: int) -> void:
 	var zone_id: String = zone_container.loaded_zone_id
-	var bytes: PackedByteArray = CharacterLoadedMsg.encode(
+	var bytes: PackedByteArray = CharacterLoadedCodec.encode(
 		character_id,
 		entity_id,
 		"Player",
@@ -117,27 +117,25 @@ func _send_character_loaded(peer_id: int, character_id: int, entity_id: int) -> 
 	)
 
 func _broadcast_spawn(player: ServerPlayerEntity, excluded_peer_ids: Array[int] = []) -> void:
-	var spawns: Array[EntityLifecycleMsg.SpawnRecord] = [_make_spawn_record(player)]
-	var bytes: PackedByteArray = EntityLifecycleMsg.encode(spawns, [])
+	var spawns: Array[EntitySpawnedGameEvent] = [_make_spawn_event(player)]
+	var bytes: PackedByteArray = EntityLifecycleCodec.encode(spawns, [])
 	network.broadcast_entity_lifecycle(bytes, excluded_peer_ids)
 
 func _broadcast_despawn(entity_id: int) -> void:
-	var despawn: EntityLifecycleMsg.DespawnRecord = EntityLifecycleMsg.DespawnRecord.new()
-	despawn.entity_id = entity_id
-	var despawns: Array[EntityLifecycleMsg.DespawnRecord] = [despawn]
-	var bytes: PackedByteArray = EntityLifecycleMsg.encode([], despawns)
+	var despawns: Array[EntityDespawnedGameEvent] = [EntityDespawnedGameEvent.new(entity_id)]
+	var bytes: PackedByteArray = EntityLifecycleCodec.encode([], despawns)
 	network.broadcast_entity_lifecycle(bytes)
 
-func _make_spawn_record(player: ServerPlayerEntity) -> EntityLifecycleMsg.SpawnRecord:
+func _make_spawn_event(player: ServerPlayerEntity) -> EntitySpawnedGameEvent:
 	var body: PhysicsBody = player.get_body()
-	var spawn: EntityLifecycleMsg.SpawnRecord = EntityLifecycleMsg.SpawnRecord.new()
-	spawn.entity_id = player.entity_id
-	spawn.entity_kind = EntityLifecycleMsg.EntityKind.Player
-	spawn.position = body.global_position
-	spawn.rotation = body.global_transform.basis.get_rotation_quaternion()
-	spawn.equipment_revision = player.equipment.revision
-	spawn.equipment_entries = player.equipment.get_snapshot_entries()
-	return spawn
+	return EntitySpawnedGameEvent.new(
+		player.entity_id,
+		EntitySpawnedGameEvent.ENTITY_KIND_PLAYER,
+		body.global_position,
+		body.global_transform.basis.get_rotation_quaternion(),
+		player.equipment.revision,
+		player.equipment.get_snapshot_entries()
+	)
 
 func _on_zone_loaded(_zone_id: String, _zone: Node, zone_entities: Node) -> void:
 	entities = zone_entities

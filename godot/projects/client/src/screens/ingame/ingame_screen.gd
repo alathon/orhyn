@@ -8,6 +8,8 @@ signal ingame_loaded(zone_id: String, character: ClientLoadedCharacter)
 @export var api: GameServerAPI
 @export var zone_container: ClientZoneContainer
 @export var game_events: GameEventBus
+@export var entity_spawner: ClientEntitySpawner
+@export var client_actions: ClientActions
 @export var dev_character_load_delay_seconds: float = 0.20
 @export var dev_entity_id: int = 1
 

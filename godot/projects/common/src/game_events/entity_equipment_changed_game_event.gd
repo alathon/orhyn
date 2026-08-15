@@ -1,6 +1,9 @@
 class_name EntityEquipmentChangedGameEvent
 extends GameEvent
 
+const OPERATION_UNSET: int = 0
+const OPERATION_SET: int = 1
+
 var entity_id: int = 0
 var equipment_revision: int = 0
 var changes: Array[Dictionary] = []

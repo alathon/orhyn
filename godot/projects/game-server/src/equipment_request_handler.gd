@@ -62,7 +62,7 @@ func _on_entity_equipment_action_requested(
 		peer_id: int,
 		request: EntityEquipmentActionRequestMsg) -> void:
 	var outcome: RequestOutcome = handle_request(peer_id, request)
-	network.send_entity_equipment_action_result(
+	network.send_entity_lifecycle(
 		peer_id,
 		EntityEquipmentActionResultMsg.encode(
 			outcome.result.request_id,
@@ -77,8 +77,8 @@ func _on_entity_equipment_action_requested(
 	if outcome.changes.is_empty():
 		return
 
-	network.broadcast_entity_equipment_changed(
-		EntityEquipmentChangedMsg.encode(
+	network.broadcast_entity_lifecycle(
+		EntityEquipmentChangedCodec.encode(
 			outcome.result.entity_id,
 			outcome.result.equipment_revision,
 			outcome.changes
@@ -105,6 +105,7 @@ func _validate_action(equipment: Equipment, action: Dictionary) -> Dictionary:
 			if item_instance_id.is_empty() or template_resource_path.is_empty():
 				return {"result_code": EntityEquipmentActionResultMsg.RESULT_INVALID_REQUEST}
 
+			# TODO: Resolve the item from server-owned inventory instead of trusting client-supplied identity and template data.
 			var template: ItemTemplate = ResourceLoader.load(template_resource_path) as ItemTemplate
 			if template == null:
 				return {"result_code": EntityEquipmentActionResultMsg.RESULT_TEMPLATE_NOT_FOUND}
@@ -144,14 +145,14 @@ func _apply_actions(
 					continue
 				changes.append({
 					"slot_id": slot_id,
-					"operation": EntityEquipmentChangedMsg.OPERATION_UNSET,
+					"operation": EntityEquipmentChangedGameEvent.OPERATION_UNSET,
 				})
 			EntityEquipmentActionRequestMsg.OPERATION_EQUIP:
 				var item: EquippableItem = action.get("item") as EquippableItem
 				equipment.set_equipped(item, slot_id)
 				changes.append({
 					"slot_id": slot_id,
-					"operation": EntityEquipmentChangedMsg.OPERATION_SET,
+					"operation": EntityEquipmentChangedGameEvent.OPERATION_SET,
 					"item_instance_id": item.instance_id,
 					"template_resource_path": item.get_template_resource_path(),
 				})

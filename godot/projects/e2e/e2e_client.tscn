@@ -1,0 +1,37 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://projects/e2e/e2e_client.gd" id="1_e2e_client"]
+[ext_resource type="Script" path="res://projects/e2e/e2e_session.gd" id="2_e2e_session"]
+[ext_resource type="Script" path="res://projects/client/src/api/orchestrator_api.gd" id="3_orchestrator_api"]
+[ext_resource type="PackedScene" path="res://projects/client/src/screens/ingame/ingame_screen.tscn" id="4_ingame_screen"]
+[ext_resource type="Script" path="res://projects/e2e/e2e_test_runner.gd" id="5_e2e_test_runner"]
+[ext_resource type="Script" path="res://projects/e2e/tests/boot_enter_world_test.gd" id="6_boot_test"]
+[ext_resource type="Script" path="res://projects/e2e/tests/equipment_flow_test.gd" id="7_equipment_test"]
+[ext_resource type="Script" path="res://projects/e2e/tests/movement_flow_test.gd" id="8_movement_test"]
+
+[node name="E2EClient" type="Node"]
+script = ExtResource("1_e2e_client")
+
+[node name="OrchestratorAPI" type="Node" parent="."]
+script = ExtResource("3_orchestrator_api")
+
+[node name="E2ESession" type="Node" parent="." node_paths=PackedStringArray("orchestrator_api")]
+script = ExtResource("2_e2e_session")
+orchestrator_api = NodePath("../OrchestratorAPI")
+ingame_scene = ExtResource("4_ingame_screen")
+
+[node name="E2ETestRunner" type="Node" parent="." node_paths=PackedStringArray("session")]
+script = ExtResource("5_e2e_test_runner")
+session = NodePath("../E2ESession")
+
+[node name="BootEnterWorldTest" type="Node" parent="E2ETestRunner"]
+script = ExtResource("6_boot_test")
+test_name = "boot_enter_world"
+
+[node name="EquipmentFlowTest" type="Node" parent="E2ETestRunner"]
+script = ExtResource("7_equipment_test")
+test_name = "equipment_flow"
+
+[node name="MovementFlowTest" type="Node" parent="E2ETestRunner"]
+script = ExtResource("8_movement_test")
+test_name = "movement_flow"

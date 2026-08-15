@@ -84,7 +84,7 @@ func _run() -> void:
 	var alloc_publish_us: float = _bench_bus_allocate_and_publish(
 			"new EntitySpawned + bus publish, 3 subs",
 			ALLOCATION_ITERATIONS)
-	_bench_protocol_decode_only("EntityLifecycleMsg.decode only", PROTOCOL_ITERATIONS)
+	_bench_protocol_decode_only("EntityLifecycleCodec.decode only", PROTOCOL_ITERATIONS)
 	var protocol_packet_us: float = _bench_protocol_decode_and_publish(
 			"decode lifecycle + publish 3 events",
 			PROTOCOL_ITERATIONS)
@@ -196,9 +196,8 @@ func _bench_protocol_decode_only(label: String, iterations: int) -> float:
 	_sink = 0
 	var started_usec: int = Time.get_ticks_usec()
 	for i in iterations:
-		var lifecycle: EntityLifecycleMsg = EntityLifecycleMsg.decode(bytes)
-		_sink += lifecycle.entities_spawned.size()
-		_sink += lifecycle.entities_despawned.size()
+		var events: Array[GameEvent] = EntityLifecycleCodec.decode(bytes)
+		_sink += events.size()
 	return _report(label, iterations, Time.get_ticks_usec() - started_usec)
 
 
@@ -212,8 +211,10 @@ func _bench_protocol_decode_and_publish(label: String, iterations: int) -> float
 	_sink = 0
 	var started_usec: int = Time.get_ticks_usec()
 	for i in iterations:
-		var lifecycle: EntityLifecycleMsg = EntityLifecycleMsg.decode(bytes)
-		EntityLifecycleEventSource.publish(lifecycle, bus)
+		var events: Array[GameEvent] = EntityLifecycleCodec.decode(bytes)
+		for event: GameEvent in events:
+			event.source = GameEvent.Source.SERVER_AUTHORITATIVE
+			bus.publish(event)
 	var result: float = _report(label, iterations, Time.get_ticks_usec() - started_usec)
 	bus.free()
 	return result
@@ -250,17 +251,15 @@ func _make_spawn_event() -> EntitySpawnedGameEvent:
 
 
 func _make_lifecycle_packet() -> PackedByteArray:
-	var despawn: EntityLifecycleMsg.DespawnRecord = EntityLifecycleMsg.DespawnRecord.new()
-	despawn.entity_id = 3
-	despawn.reason = 9
+	var despawn: EntityDespawnedGameEvent = EntityDespawnedGameEvent.new(3, 9)
+	var spawn: EntitySpawnedGameEvent = EntitySpawnedGameEvent.new(
+		7,
+		EntitySpawnedGameEvent.ENTITY_KIND_PLAYER,
+		Vector3(1.0, 2.0, 3.0),
+		Quaternion.IDENTITY
+	)
 
-	var spawn: EntityLifecycleMsg.SpawnRecord = EntityLifecycleMsg.SpawnRecord.new()
-	spawn.entity_id = 7
-	spawn.entity_kind = EntityLifecycleMsg.EntityKind.Player
-	spawn.position = Vector3(1.0, 2.0, 3.0)
-	spawn.rotation = Quaternion.IDENTITY
-
-	return EntityLifecycleMsg.encode([spawn], [despawn], 7)
+	return EntityLifecycleCodec.encode([spawn], [despawn], 7)
 
 
 func _report(label: String, iterations: int, elapsed_usec: int) -> float:
