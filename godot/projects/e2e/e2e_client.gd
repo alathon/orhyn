@@ -16,6 +16,9 @@ func _run() -> void:
 		"timeout_seconds": float(_get_arg("--timeout", "10")),
 		"suite": _get_arg("--suite", "gameplay"),
 		"coordination_dir": _get_arg("--coordination-dir", ""),
+		"client_role": _get_arg("--client-role", ""),
+		"zone_connect_address": _get_arg("--zone-connect-address", ""),
+		"zone_connect_port": int(_get_arg("--zone-connect-port", "0")),
 	}
 	var result_file: String = _get_arg("--result-file", DEFAULT_RESULT_FILE)
 

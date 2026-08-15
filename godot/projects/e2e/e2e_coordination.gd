@@ -14,6 +14,20 @@ const JOINER_READY_FILE: String = "joiner-ready.json"
 const JOINER_SEES_EXISTING_CLIENTS_FILE: String = "joiner-sees-existing-clients.json"
 const THREE_CLIENTS_READY_FILE: String = "three-clients-ready.json"
 
+const IMPAIRED_OBSERVER_READY_FILE: String = "impaired-observer-ready.json"
+const IMPAIRED_ACTOR_READY_FILE: String = "impaired-actor-ready.json"
+const IMPAIRED_OBSERVER_SEES_ACTOR_FILE: String = "impaired-observer-sees-actor.json"
+const IMPAIRED_FIRST_TWO_VERIFIED_FILE: String = "impaired-first-two-verified.json"
+const IMPAIRED_JOINER_READY_FILE: String = "impaired-joiner-ready.json"
+const IMPAIRED_OBSERVER_SEES_ALL_FILE: String = "impaired-observer-sees-all.json"
+const IMPAIRED_JOINER_SEES_ALL_FILE: String = "impaired-joiner-sees-all.json"
+const IMPAIRED_ALL_CLIENTS_READY_FILE: String = "impaired-all-clients-ready.json"
+const IMPAIRED_OBSERVER_ACTION_READY_FILE: String = "impaired-observer-action-ready.json"
+const IMPAIRED_JOINER_ACTION_READY_FILE: String = "impaired-joiner-action-ready.json"
+const IMPAIRED_ACTOR_STATE_FILE: String = "impaired-actor-state.json"
+const IMPAIRED_OBSERVER_CONVERGED_FILE: String = "impaired-observer-converged.json"
+const IMPAIRED_JOINER_CONVERGED_FILE: String = "impaired-joiner-converged.json"
+
 static func write_json(path: String, payload: Dictionary) -> Error:
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	if file == null:

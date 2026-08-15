@@ -15,7 +15,7 @@ RUN_SERVER_AND_CLIENT = ./scripts/run_server_and_client.sh
 RUN_E2E = ./scripts/run_e2e.sh
 endif
 
-.PHONY: help orchestrator run-orchestrator run_orchestrator zone run-zone run_zone servers run-servers run_servers server-and-client server_and_client run-server-and-client run_server_and_client e2e
+.PHONY: help orchestrator run-orchestrator run_orchestrator zone run-zone run_zone servers run-servers run_servers server-and-client server_and_client run-server-and-client run_server_and_client e2e e2e-impaired
 
 help:
 	@printf '%s\n' \
@@ -25,6 +25,7 @@ help:
 		'  make servers ARGS="--headless"' \
 		'  make server-and-client' \
 		'  make e2e' \
+		'  make e2e-impaired' \
 		'' \
 		'Set GODOT_BIN or GO_BIN to override executable names on Unix-like systems.'
 
@@ -42,3 +43,6 @@ server-and-client server_and_client run-server-and-client run_server_and_client:
 
 e2e:
 	@$(RUN_E2E) $(ARGS)
+
+e2e-impaired:
+	@./scripts/run_e2e_impaired.sh $(ARGS)

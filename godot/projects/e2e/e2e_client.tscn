@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://projects/e2e/e2e_client.gd" id="1_e2e_client"]
 [ext_resource type="Script" path="res://projects/e2e/e2e_session.gd" id="2_e2e_session"]
@@ -11,6 +11,8 @@
 [ext_resource type="Script" path="res://projects/e2e/tests/multi_client_actor_test.gd" id="9_multi_actor"]
 [ext_resource type="Script" path="res://projects/e2e/tests/multi_client_observer_test.gd" id="10_multi_observer"]
 [ext_resource type="Script" path="res://projects/e2e/tests/multi_client_joiner_test.gd" id="11_multi_joiner"]
+[ext_resource type="Script" path="res://projects/e2e/tests/impaired_network_actor_test.gd" id="12_impaired_actor"]
+[ext_resource type="Script" path="res://projects/e2e/tests/impaired_network_peer_test.gd" id="13_impaired_peer"]
 
 [node name="E2EClient" type="Node"]
 script = ExtResource("1_e2e_client")
@@ -53,3 +55,13 @@ suite_name = "multi_client_observer"
 script = ExtResource("11_multi_joiner")
 test_name = "multi_client_joiner"
 suite_name = "multi_client_joiner"
+
+[node name="ImpairedNetworkActorTest" type="Node" parent="E2ETestRunner"]
+script = ExtResource("12_impaired_actor")
+test_name = "impaired_network_actor"
+suite_name = "impaired_network_actor"
+
+[node name="ImpairedNetworkPeerTest" type="Node" parent="E2ETestRunner"]
+script = ExtResource("13_impaired_peer")
+test_name = "impaired_network_peer"
+suite_name = "impaired_network_peer"

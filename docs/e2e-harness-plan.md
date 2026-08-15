@@ -290,9 +290,44 @@ against the same zone:
   `EntityEquipmentChangedGameEvent` with the expected entity, revision, slot,
   operation, item instance, and template path before checking applied state.
 
+### Milestone 5: Impaired-Network Convergence
+
+Keep impaired-network coverage in a separate `make e2e-impaired` suite. The
+clean suite remains the oracle for protocol payloads, client composition, and
+same-tick semantic correctness; the impaired suite must not repeat those
+assertions with longer timeouts.
+
+Run each of the three full clients through its own test-only raw UDP proxy. The
+proxy operates beneath ENet and applies independent, seeded upstream and
+downstream delay, jitter, and datagram loss. This allows reliable ENet channels
+to exercise retransmission while unreliable movement traffic may legitimately
+skip packets. The orchestrator WebSocket remains direct so this suite isolates
+zone gameplay transport behavior.
+
+The default profiles model approximately 400 ms RTT for client A, 250 ms RTT
+for client B, and 20 ms RTT for client C. Their exact delay, jitter, loss, and
+seed values are recorded in each run's artifacts and can be overridden through
+the runner environment.
+
+This suite should assert only impairment-specific guarantees within named
+bounds:
+
+- Reliable remote-player spawn and equipment events are observed exactly once.
+- Every client eventually contains the exact three expected entity ids.
+- After movement stops, later authoritative snapshots and rendered remote
+  entities eventually converge on the actor's server-authoritative final
+  position. Individual unreliable ticks may be absent.
+- Replicated equipment state eventually converges on all clients.
+- Proxy statistics show the actual forwarded and dropped datagrams for each
+  direction and client.
+
+Do not duplicate detailed spawn/equipment payload validation, local-versus-
+remote node type checks, or fixed/common-tick movement comparisons here. Those
+belong to the clean multi-client suite.
+
 ### Current Implementation Status
 
-Milestones 1 through 4 are implemented. `make e2e` runs the single-client
+Milestones 1 through 5 are implemented. `make e2e` runs the single-client
 gameplay cases, then starts client A, client B, and client C as separate Godot
 processes for the multi-client flow. Staged barriers verify the exact two-client
 and three-client spawn events, spawn positions, remote entities, and entity
@@ -300,6 +335,13 @@ registries before the observer verifies same-tick authoritative movement,
 rendered-position convergence, replicated equipment event and state, and
 despawn. Focused movement tests verify that out-of-range diagonal input cannot
 exceed the server-owned movement speed.
+
+`make e2e-impaired` is a wholly separate three-client run. It builds one
+test-only UDP impairment proxy per client, records the seeded network profiles
+and proxy counters under `logs/e2e-impaired/`, and checks exactly-once reliable
+event delivery plus eventual entity, position, and equipment convergence. It is
+not included in `make e2e`, so clean-network regressions remain fast and retain
+their stricter semantic assertions.
 
 ## Failure Handling
 

@@ -14,6 +14,8 @@ var username: String = DEFAULT_USERNAME
 var target_zone_id: String = DEFAULT_ZONE_ID
 var orchestrator_url: String = DEFAULT_ORCHESTRATOR_URL
 var timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+var zone_connect_address: String = ""
+var zone_connect_port: int = 0
 
 var character: ClientCharacterSummary = null
 var redirect: ClientZoneRedirect = null
@@ -39,11 +41,20 @@ func start(config: Dictionary = {}) -> bool:
 	target_zone_id = str(config.get("zone_id", DEFAULT_ZONE_ID)).strip_edges().to_lower()
 	orchestrator_url = str(config.get("orchestrator_url", DEFAULT_ORCHESTRATOR_URL))
 	timeout_seconds = float(config.get("timeout_seconds", DEFAULT_TIMEOUT_SECONDS))
+	zone_connect_address = str(config.get("zone_connect_address", "")).strip_edges()
+	zone_connect_port = int(config.get("zone_connect_port", 0))
 
 	if target_zone_id.is_empty():
 		return _fail("configure", "Zone id cannot be empty.")
 	if username.strip_edges().is_empty():
 		return _fail("configure", "Username cannot be empty.")
+	var has_connect_address: bool = not zone_connect_address.is_empty()
+	var has_connect_port: bool = zone_connect_port > 0
+	if has_connect_address != has_connect_port or zone_connect_port > 65535:
+		return _fail("configure", "Zone connection override requires a valid address and port.", {
+			"address": zone_connect_address,
+			"port": zone_connect_port,
+		})
 
 	if not _configure_orchestrator_api():
 		return false
@@ -139,6 +150,27 @@ func wait_for_entity_spawned_event(
 			_game_server_api.poll()
 		await get_tree().process_frame
 	return null
+
+func get_entity_spawned_event_count(entity_id: int) -> int:
+	var count: int = 0
+	for event: EntitySpawnedGameEvent in _entity_spawned_events:
+		if event.entity_id == entity_id:
+			count += 1
+	return count
+
+func wait_for_entity_spawned_event_count(
+	entity_id: int,
+	min_count: int,
+	wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> bool:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		if get_entity_spawned_event_count(entity_id) >= min_count:
+			return true
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return false
 
 func wait_for_entities_near_spawn_positions(
 		entity_ids: Array[int],
@@ -286,6 +318,27 @@ func wait_for_entity_equipment_changed_event(
 		await get_tree().process_frame
 	return null
 
+func get_entity_equipment_changed_event_count(entity_id: int) -> int:
+	var count: int = 0
+	for event: EntityEquipmentChangedGameEvent in _equipment_changed_events:
+		if event.entity_id == entity_id:
+			count += 1
+	return count
+
+func wait_for_entity_equipment_changed_event_count(
+	entity_id: int,
+	min_count: int,
+	wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> bool:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		if get_entity_equipment_changed_event_count(entity_id) >= min_count:
+			return true
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return false
+
 func wait_for_unequipped(
 		slot_id: Equippable.SlotId,
 		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
@@ -415,6 +468,29 @@ func wait_for_entity_movement_snapshot_at_tick(
 			)
 			if entity_snapshot != null and entity_snapshot.server_tick == server_tick:
 				return entity_snapshot
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return null
+
+func wait_for_entity_authoritative_position_near(
+	entity_id: int,
+	target: Vector3,
+	min_server_tick: int,
+	max_distance: float,
+	wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> MovementSnapshotMsg.EntitySnapshot:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		for snapshot: MovementSnapshotMsg in _movement_snapshots:
+			var candidate: MovementSnapshotMsg.EntitySnapshot = _find_entity_snapshot(
+				snapshot,
+				entity_id
+			)
+			if candidate == null or candidate.server_tick < min_server_tick:
+				continue
+			if candidate.position.distance_to(target) <= max_distance:
+				return candidate
 		if _game_server_api != null:
 			_game_server_api.poll()
 		await get_tree().process_frame
@@ -573,16 +649,23 @@ func _load_ingame_screen() -> bool:
 
 func _connect_and_enter_zone() -> bool:
 	_ingame_screen.begin_character_load(character, redirect)
+	var connect_address: String = redirect.address
+	var connect_port: int = redirect.port
+	if not zone_connect_address.is_empty():
+		connect_address = zone_connect_address
+		connect_port = zone_connect_port
 
 	var connect_error: Error = await _game_server_api.connect_and_wait(
-		redirect.address,
-		redirect.port,
+		connect_address,
+		connect_port,
 		timeout_seconds
 	)
 	if connect_error != OK:
 		return _fail("connect_zone", "Could not connect to zone server.", {
-			"address": redirect.address,
-			"port": redirect.port,
+			"address": connect_address,
+			"port": connect_port,
+			"redirect_address": redirect.address,
+			"redirect_port": redirect.port,
 			"error": error_string(connect_error),
 		})
 
