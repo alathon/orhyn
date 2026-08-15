@@ -11,7 +11,5 @@ func _on_tick(_tick: int, delta: float):
 		if input == null:
 			continue
 
-		var before: Vector3 = player.get_body().global_position
 		player.get_body().simulate(input, delta)
-		if not before.is_equal_approx(player.get_body().global_position):
-			systems.tick_context.entities_moved.append(player)
+		systems.tick_context.entities_with_processed_input.append(player)

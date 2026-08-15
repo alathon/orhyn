@@ -13,9 +13,7 @@ func simulate(input: MovementInputFrame, delta: float) -> void:
 	if input.jump_pressed and is_on_floor():
 		velocity.y = JumpVelocity
 
-	var ix = input.input_x
-	var iz = input.input_z
-	var movement = Vector3(ix, 0.0, iz)
+	var movement: Vector3 = get_movement_direction(input)
 
 	if movement != Vector3.ZERO:
 		velocity.x = movement.x * Speed
@@ -26,3 +24,9 @@ func simulate(input: MovementInputFrame, delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0, Speed)
 
 	move_and_slide()
+
+static func get_movement_direction(input: MovementInputFrame) -> Vector3:
+	var movement: Vector3 = Vector3(input.input_x, 0.0, input.input_z)
+	if movement.length_squared() > 1.0:
+		return movement.normalized()
+	return movement

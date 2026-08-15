@@ -84,6 +84,38 @@ func local_player() -> Player:
 		return null
 	return _entity_spawner.get_local_player()
 
+func get_entity(entity_id: int) -> BaseEntity:
+	if _entity_spawner == null:
+		return null
+	return _entity_spawner.get_player(entity_id)
+
+func wait_for_entity(
+		entity_id: int,
+		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> BaseEntity:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		var entity: BaseEntity = get_entity(entity_id)
+		if entity != null:
+			return entity
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return null
+
+func wait_for_entity_despawned(
+		entity_id: int,
+		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> bool:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		if get_entity(entity_id) == null:
+			return true
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return false
+
 func try_equip_item(item: EquippableItem, slot_id: Equippable.SlotId) -> int:
 	if _client_actions == null:
 		return -1
@@ -126,6 +158,24 @@ func wait_for_equipped(
 		await get_tree().process_frame
 	return null
 
+func wait_for_entity_equipped(
+		entity_id: int,
+		slot_id: Equippable.SlotId,
+		item_instance_id: String,
+		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> EquippableItem:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		var equipment: Equipment = _get_entity_equipment(entity_id)
+		if equipment != null:
+			var item: EquippableItem = equipment.get_equipped(slot_id)
+			if item != null and item.instance_id == item_instance_id:
+				return item
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return null
+
 func wait_for_unequipped(
 		slot_id: Equippable.SlotId,
 		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
@@ -145,6 +195,45 @@ func get_local_position() -> Vector3:
 	if player == null:
 		return Vector3.ZERO
 	return player.get_body().global_position
+
+func get_entity_position(entity_id: int) -> Vector3:
+	var entity: BaseEntity = get_entity(entity_id)
+	if entity == null:
+		return Vector3.ZERO
+	var body: Node3D = entity.get_body()
+	return body.global_position
+
+func wait_for_entity_position_changed(
+		entity_id: int,
+		origin: Vector3,
+		min_distance: float,
+		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> bool:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		var entity: BaseEntity = get_entity(entity_id)
+		if entity != null and get_entity_position(entity_id).distance_to(origin) >= min_distance:
+			return true
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return false
+
+func wait_for_entity_position_near(
+		entity_id: int,
+		target: Vector3,
+		max_distance: float,
+		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> bool:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		var entity: BaseEntity = get_entity(entity_id)
+		if entity != null and get_entity_position(entity_id).distance_to(target) <= max_distance:
+			return true
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return false
 
 func wait_for_local_position_changed(
 		origin: Vector3,
@@ -167,11 +256,80 @@ func wait_for_local_movement_snapshot(
 	var started_msec: int = Time.get_ticks_msec()
 	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
 		for snapshot: MovementSnapshotMsg in _movement_snapshots:
-			var entity_snapshot: MovementSnapshotMsg.EntitySnapshot = _find_local_snapshot(snapshot)
+			var entity_snapshot: MovementSnapshotMsg.EntitySnapshot = _find_entity_snapshot(
+				snapshot,
+				_entity_spawner.local_entity_id
+			)
 			if entity_snapshot == null:
 				continue
 			if entity_snapshot.last_processed_movement_seq >= min_processed_seq:
 				return entity_snapshot
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return null
+
+func wait_for_entity_authoritative_position_changed(
+		entity_id: int,
+		origin: Vector3,
+		min_distance: float,
+		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> MovementSnapshotMsg.EntitySnapshot:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		for snapshot: MovementSnapshotMsg in _movement_snapshots:
+			var entity_snapshot: MovementSnapshotMsg.EntitySnapshot = _find_entity_snapshot(
+				snapshot,
+				entity_id
+			)
+			if entity_snapshot == null:
+				continue
+			if entity_snapshot.position.distance_to(origin) >= min_distance:
+				return entity_snapshot
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return null
+
+func wait_for_entity_movement_snapshot_at_tick(
+		entity_id: int,
+		server_tick: int,
+		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> MovementSnapshotMsg.EntitySnapshot:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		for snapshot: MovementSnapshotMsg in _movement_snapshots:
+			var entity_snapshot: MovementSnapshotMsg.EntitySnapshot = _find_entity_snapshot(
+				snapshot,
+				entity_id
+			)
+			if entity_snapshot != null and entity_snapshot.server_tick == server_tick:
+				return entity_snapshot
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return null
+
+func wait_for_entity_movement_settled(
+		entity_id: int,
+		min_processed_seq: int,
+		max_horizontal_speed: float,
+		wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> MovementSnapshotMsg.EntitySnapshot:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		for snapshot: MovementSnapshotMsg in _movement_snapshots:
+			var candidate: MovementSnapshotMsg.EntitySnapshot = _find_entity_snapshot(
+				snapshot,
+				entity_id
+			)
+			if candidate == null:
+				continue
+			if candidate.last_processed_movement_seq < min_processed_seq:
+				continue
+			var horizontal_velocity: Vector2 = Vector2(candidate.velocity.x, candidate.velocity.z)
+			if horizontal_velocity.length() <= max_horizontal_speed:
+				return candidate
 		if _game_server_api != null:
 			_game_server_api.poll()
 		await get_tree().process_frame
@@ -352,12 +510,20 @@ func _on_movement_snapshot_received(snapshot: MovementSnapshotMsg) -> void:
 	if _movement_snapshots.size() > 64:
 		_movement_snapshots.pop_front()
 
-func _find_local_snapshot(snapshot: MovementSnapshotMsg) -> MovementSnapshotMsg.EntitySnapshot:
-	if _entity_spawner == null:
-		return null
+func _find_entity_snapshot(
+		snapshot: MovementSnapshotMsg,
+		entity_id: int) -> MovementSnapshotMsg.EntitySnapshot:
 	for entity_snapshot: MovementSnapshotMsg.EntitySnapshot in snapshot.entities:
-		if entity_snapshot.entity_id == _entity_spawner.local_entity_id:
+		if entity_snapshot.entity_id == entity_id:
 			return entity_snapshot
+	return null
+
+func _get_entity_equipment(entity_id: int) -> Equipment:
+	var entity: BaseEntity = get_entity(entity_id)
+	if entity is Player:
+		return (entity as Player).equipment
+	if entity is RemoteEntity:
+		return (entity as RemoteEntity).equipment
 	return null
 
 func _fail(step: String, reason: String, details: Dictionary = {}) -> bool:

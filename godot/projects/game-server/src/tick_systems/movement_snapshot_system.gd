@@ -8,7 +8,7 @@ extends BaseSystem
 func _on_tick(tick: int, _delta: float):
 	var entities: Array[MovementSnapshotMsg.EntitySnapshot] = []
 
-	for entity: BaseEntity in systems.tick_context.entities_moved:
+	for entity: BaseEntity in systems.tick_context.entities_with_processed_input:
 		if entity is ServerPlayerEntity:
 			var player: ServerPlayerEntity = entity
 			var body: PhysicsBody = player.get_body()

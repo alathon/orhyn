@@ -2,6 +2,7 @@ class_name E2ETestCase
 extends Node
 
 @export var test_name: String = ""
+@export var suite_name: String = "gameplay"
 @export var timeout_seconds: float = E2ESession.DEFAULT_TIMEOUT_SECONDS
 
 func run(_session: E2ESession, _config: Dictionary = {}) -> Dictionary:

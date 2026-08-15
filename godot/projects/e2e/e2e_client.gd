@@ -14,10 +14,24 @@ func _run() -> void:
 		"username": _get_arg("--username", "e2e_boot"),
 		"zone_id": _get_arg("--zone", "mvp"),
 		"timeout_seconds": float(_get_arg("--timeout", "10")),
+		"suite": _get_arg("--suite", "gameplay"),
+		"coordination_dir": _get_arg("--coordination-dir", ""),
 	}
 	var result_file: String = _get_arg("--result-file", DEFAULT_RESULT_FILE)
 
-	var result: Dictionary = await _runner.run(config)
+	var session_started: bool = await _session.start(config)
+	var result: Dictionary
+	if session_started:
+		result = await _runner.run(config)
+	else:
+		result = {
+			"ok": false,
+			"suite": str(config.get("suite", "gameplay")),
+			"tests": [],
+			"failure_step": "session:%s" % _session.failure_step,
+			"failure_reason": _session.failure_reason,
+			"failure_details": _session.failure_details,
+		}
 	var ok: bool = bool(result.get("ok", false))
 	_write_result(result_file, result)
 	print("E2E_RESULT " + JSON.stringify(result))

@@ -16,8 +16,9 @@ usage() {
     cat <<EOF
 Usage: $0 [--zone ZONE_ID] [--username USERNAME] [--timeout SECONDS]
 
-Runs the boot-and-enter-world E2E suite with fresh orchestrator, zone, and
-headless Godot client processes. Artifacts are written under logs/e2e/.
+Runs the single-client gameplay suite followed by the two-client replication
+suite against fresh orchestrator and zone processes. Artifacts are written
+under logs/e2e/.
 EOF
 }
 
@@ -139,6 +140,44 @@ wait_for_zone_registration() {
     done
 }
 
+wait_for_file() {
+    local name="$1"
+    local path="$2"
+    local process_pid="$3"
+    local timeout_seconds="$4"
+    local started
+
+    started="$(date +%s)"
+    while true; do
+        if [[ -s "$path" ]]; then
+            return 0
+        fi
+        if ! kill -0 "$process_pid" 2>/dev/null; then
+            echo "$name exited before writing $path" >&2
+            return 1
+        fi
+        if (( $(date +%s) - started >= timeout_seconds )); then
+            echo "Timed out waiting for $name to write $path" >&2
+            return 1
+        fi
+        sleep 0.2
+    done
+}
+
+show_result() {
+    local name="$1"
+    local path="$2"
+
+    if [[ -s "$path" ]]; then
+        echo "$name result: $path"
+        cat "$path"
+        return 0
+    fi
+
+    echo "$name result file was not written: $path" >&2
+    return 1
+}
+
 mkdir -p "$artifact_dir"
 supervisor_install_traps
 
@@ -146,7 +185,12 @@ orchestrator_game_port="$(allocate_port)"
 orchestrator_client_port="$(allocate_port)"
 orchestrator_health_port="$(allocate_port)"
 zone_port="$(allocate_port)"
-result_file="$artifact_dir/e2e-result.json"
+gameplay_result_file="$artifact_dir/gameplay-result.json"
+coordination_dir="$artifact_dir/multi-client"
+observer_result_file="$artifact_dir/multi-client-observer-result.json"
+actor_result_file="$artifact_dir/multi-client-actor-result.json"
+
+mkdir -p "$coordination_dir"
 
 printf '%s\n' \
     "run_id=$run_id" \
@@ -191,11 +235,11 @@ zone_pid="$started_pid"
 wait_for_zone_registration "http://127.0.0.1:$orchestrator_health_port/healthz" "$zone_id" 15
 
 supervisor_start \
-    "e2e-client" \
-    "$artifact_dir/e2e-client.log" \
+    "gameplay-client" \
+    "$artifact_dir/gameplay-client.log" \
     "$project_root" \
     timeout "${suite_timeout_seconds}s" \
-    env "ORHYN_GODOT_RUNTIME_DIR=$artifact_dir/runtime-client" \
+    env "ORHYN_GODOT_RUNTIME_DIR=$artifact_dir/runtime-gameplay-client" \
     "$script_dir/godot-sandboxed.sh" \
     "--headless" \
     "--path" "./godot" \
@@ -204,7 +248,8 @@ supervisor_start \
     "--orchestrator-url" "ws://127.0.0.1:$orchestrator_client_port/ws" \
     "--username" "$username" \
     "--zone" "$zone_id" \
-    "--result-file" "$result_file"
+    "--suite" "gameplay" \
+    "--result-file" "$gameplay_result_file"
 client_pid="$started_pid"
 
 exited_pid=
@@ -218,17 +263,103 @@ if [[ "${exited_pid:-}" != "$client_pid" ]]; then
     if (( status == 0 )); then
         status=1
     fi
+else
+    _supervisor_remove_pid "$client_pid"
+fi
+
+if ! show_result "Gameplay" "$gameplay_result_file"; then
+    status=1
+fi
+
+if (( status != 0 )); then
+    trap - EXIT
+    supervisor_stop_all
+    echo "E2E artifacts: $artifact_dir"
+    exit "$status"
+fi
+
+supervisor_start \
+    "multi-client-observer" \
+    "$artifact_dir/multi-client-observer.log" \
+    "$project_root" \
+    timeout "${suite_timeout_seconds}s" \
+    env "ORHYN_GODOT_RUNTIME_DIR=$artifact_dir/runtime-multi-client-observer" \
+    "$script_dir/godot-sandboxed.sh" \
+    "--headless" \
+    "--path" "./godot" \
+    "--scene" "res://projects/e2e/e2e_client.tscn" \
+    "--" \
+    "--orchestrator-url" "ws://127.0.0.1:$orchestrator_client_port/ws" \
+    "--username" "e2e_observer" \
+    "--zone" "$zone_id" \
+    "--suite" "multi_client_observer" \
+    "--coordination-dir" "$coordination_dir" \
+    "--result-file" "$observer_result_file"
+observer_pid="$started_pid"
+
+if ! wait_for_file \
+    "multi-client observer" \
+    "$coordination_dir/observer-ready.json" \
+    "$observer_pid" \
+    "$suite_timeout_seconds"; then
+    status=1
+    trap - EXIT
+    supervisor_stop_all
+    show_result "Multi-client observer" "$observer_result_file" || true
+    echo "E2E artifacts: $artifact_dir"
+    exit "$status"
+fi
+
+supervisor_start \
+    "multi-client-actor" \
+    "$artifact_dir/multi-client-actor.log" \
+    "$project_root" \
+    timeout "${suite_timeout_seconds}s" \
+    env "ORHYN_GODOT_RUNTIME_DIR=$artifact_dir/runtime-multi-client-actor" \
+    "$script_dir/godot-sandboxed.sh" \
+    "--headless" \
+    "--path" "./godot" \
+    "--scene" "res://projects/e2e/e2e_client.tscn" \
+    "--" \
+    "--orchestrator-url" "ws://127.0.0.1:$orchestrator_client_port/ws" \
+    "--username" "e2e_actor" \
+    "--zone" "$zone_id" \
+    "--suite" "multi_client_actor" \
+    "--coordination-dir" "$coordination_dir" \
+    "--result-file" "$actor_result_file"
+actor_pid="$started_pid"
+
+set +e
+wait "$actor_pid"
+actor_status="$?"
+set -e
+_supervisor_remove_pid "$actor_pid"
+if (( actor_status != 0 )); then
+    status="$actor_status"
+    trap - EXIT
+    supervisor_stop_all
+    show_result "Multi-client actor" "$actor_result_file" || true
+    show_result "Multi-client observer" "$observer_result_file" || true
+    echo "E2E artifacts: $artifact_dir"
+    exit "$status"
+fi
+
+set +e
+wait "$observer_pid"
+observer_status="$?"
+set -e
+_supervisor_remove_pid "$observer_pid"
+if (( observer_status != 0 )); then
+    status="$observer_status"
+fi
+if ! show_result "Multi-client actor" "$actor_result_file"; then
+    status=1
+fi
+if ! show_result "Multi-client observer" "$observer_result_file"; then
+    status=1
 fi
 
 trap - EXIT
 supervisor_stop_all
-
-if [[ -f "$result_file" ]]; then
-    echo "E2E result: $result_file"
-    cat "$result_file"
-else
-    echo "E2E result file was not written: $result_file" >&2
-fi
-
 echo "E2E artifacts: $artifact_dir"
 exit "$status"

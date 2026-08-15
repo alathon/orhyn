@@ -4,9 +4,10 @@
 
 Build an end-to-end testing harness that starts the real backend pieces, runs a
 headless Godot test client, drives the real network protocols, and asserts on
-observed outcomes. The harness should skip UI screens, but it should not skip
-the application flows that matter: orchestrator login, character selection, zone
-redirect, ENet zone connection, zone login, and gameplay messages.
+observed outcomes. The harness should skip interactive login and character
+selection UI, but it should not skip the application flows that matter:
+orchestrator login, character selection, zone redirect, ENet zone connection,
+zone login, the real in-game scene, and gameplay messages.
 
 The E2E layer must be a driver and observer. It may call existing APIs and
 inspect existing nodes, but it must not duplicate gameplay or business logic.
@@ -17,7 +18,7 @@ the result.
 ## Goals
 
 - Spin up a fresh orchestrator and one or more headless zone servers for each
-  E2E suite.
+  E2E run. Sequential test groups within that run may share the infrastructure.
 - Run a headless Godot E2E client that uses the same protocol encoders,
   decoders, ENet APIs, and client-side routing code as the real client.
 - Provide a reusable "get in game" fixture so tests do not repeat login and
@@ -33,18 +34,20 @@ the result.
 
 ## Non-Goals
 
-- Do not drive the UI layer for v1. Screen-level UI tests can be added later as
-  a separate layer.
+- Do not drive login, character-selection, or gameplay UI controls for v1.
+  Screen-level UI tests can be added later as a separate layer. The real
+  `IngameScreen` still runs headlessly as the production gameplay composition
+  root.
 - Do not reimplement gameplay rules in the harness.
 - Do not use raw prose logs as the primary assertion mechanism.
-- Do not make parallel E2E execution a v1 requirement. Sequential suites with
-  fresh processes are acceptable.
+- Do not make parallel E2E execution a v1 requirement. Sequential test groups
+  within one isolated run are acceptable.
 
 ## Architecture
 
 ### Process Runner
 
-Add an external E2E runner that owns process lifecycle for a suite:
+Add an external E2E runner that owns process lifecycle for a run:
 
 1. Allocate unique ports for orchestrator, zone servers, and client-facing
    endpoints.
@@ -77,9 +80,12 @@ The test client should reuse existing production code wherever practical:
 - Existing node state such as `Player`, `Equipment`, and entity state when the
   test needs to observe final client-side state.
 
-The E2E client should not instantiate UI screens just to get into the world.
-Instead, extract or add a UI-independent session bootstrapper that performs the
-same network sequence currently coordinated by the UI flow.
+The E2E client should bypass interactive login and character-selection screens
+by using a UI-independent session bootstrapper for that network sequence. Once
+the client enters the world, it should instantiate the real `IngameScreen`
+headlessly. This keeps the production `GameServerAPI`, `GameEventBus`, entity
+spawner, client actions, zone container, player, and remote-entity composition
+under test without requiring UI input automation.
 
 ### Session Bootstrapper
 
@@ -109,16 +115,17 @@ var session := await E2ESession.start({
 The helper should own boring orchestration, timeout handling, and diagnostics.
 It should not own gameplay decisions.
 
-### Dedicated Test Zone And Fixtures
+### Test Zone And Fixtures
 
-Add a deterministic E2E zone or E2E zone mode. It should be small, predictable,
-and cheap to run headless.
+Use the real `mvp` zone for the current E2E suite. It exercises the same
+Terrain3D world used by the client and server, and headless execution keeps it
+usable in automation. A dedicated E2E zone can be reconsidered if fixture
+control, runtime, or reliability becomes a practical problem.
 
-Recommended properties:
+Test fixtures should still provide:
 
 - Stable spawn point.
-- Known zone id, such as `e2e` or a test-mode `mvp`.
-- Deterministic tick rate.
+- Known `mvp` zone id.
 - Known starter character state.
 - Known equipment/inventory fixtures.
 - Minimal world complexity.
@@ -173,17 +180,21 @@ Avoid helper names that imply duplicated rules:
 - `simulate_movement`
 - `predict_equipment_revision`
 
-For negative tests, the harness should set up the scenario, send the real
-request, and assert the real rejection:
+E2E tests should drive actions through the same production action surface as
+the real client. If that surface rejects an invalid action locally, the E2E
+test may assert the local rejection and unchanged observed state; it should not
+bypass production client behavior solely to manufacture a malformed packet.
 
 ```gdscript
-var request_id := session.request_equip_item(invalid_slot, item_id, template_path)
-var result_code := await session.wait_for_action_result(request_id)
-assert_eq(result_code, EntityEquipmentActionResultMsg.RESULT_INVALID_SLOT)
+var request_id := session.try_equip_item(item, invalid_slot)
+assert_eq(request_id, -1)
+assert_eq(session.local_player().equipment.get_equipped(existing_slot), existing_item)
 ```
 
-The rejection code comes from the server response. The harness does not compute
-whether the action should have been rejected.
+The server must independently reject malformed or malicious requests. Cover
+that boundary with focused server handler/network tests, including the result
+code and the absence of partial state changes. This keeps E2E focused on real
+client workflows while preserving authoritative server validation coverage.
 
 ## Observability
 
@@ -234,7 +245,9 @@ Add gameplay-level equipment tests:
 - Observe replicated equipment state on the local player.
 - Unequip the item and observe state removal.
 - Equip multiple items sequentially.
-- Send an invalid equipment request and assert the real server rejection.
+- Attempt an incompatible equipment action through `ClientActions` and observe
+  the real client rejection without replicated state changes.
+- Cover authoritative server rejection and atomicity in focused server tests.
 
 Assertions should use equipment responses, replicated equipment messages,
 game events, or existing `Equipment` state.
@@ -247,18 +260,35 @@ Add movement tests:
 - Observe authoritative movement snapshots.
 - Assert that the observed player position changes as expected.
 - Keep the harness from implementing its own movement simulation.
+- Keep movement speed server-authoritative by normalizing received direction
+  vectors before applying the server-owned speed.
 
 The test may assert broad outcome ranges or snapshot properties instead of
 calculating exact physics results independently.
 
 ### Milestone 4: Multi-Client Flow
 
-Add multi-client coverage after single-client flows are stable:
+Add multi-client coverage after single-client flows are stable. Start two full
+headless Godot client processes, each with its own real `IngameScreen`, against
+the same zone:
 
-- Start two E2E sessions against the same zone.
+- Enter the same zone with an actor client and an observer client.
 - Move one client.
 - Assert the other client observes the remote entity update.
+- Compare the authoritative actor position decoded by both clients for the same
+  server tick.
+- After movement settles, assert the actor's reconciled body and the observer's
+  interpolated remote body converge near that authoritative position.
 - Exercise equipment changes and entity lifecycle replication across clients.
+
+### Current Implementation Status
+
+Milestones 1 through 4 are implemented. `make e2e` runs the single-client
+gameplay cases, then starts separate actor and observer Godot processes for the
+multi-client flow. The observer verifies the actor's remote spawn,
+same-tick authoritative movement, rendered-position convergence, replicated
+equipment, and despawn. Focused movement tests verify that out-of-range diagonal
+input cannot exceed the server-owned movement speed.
 
 ## Failure Handling
 
@@ -280,8 +310,9 @@ The first implemented version is acceptable when:
 
 - A single command can run the E2E suite from a clean checkout with Godot and Go
   available.
-- Each suite starts fresh processes and stops them reliably.
-- The E2E client enters the world without using UI screens.
+- Each E2E run starts fresh processes and stops them reliably.
+- The E2E client bypasses interactive login and character-selection screens,
+  then runs the real `IngameScreen` headlessly.
 - Tests drive real orchestrator and ENet messages.
 - Test helpers do not duplicate gameplay rules.
 - Failures produce enough artifacts to diagnose which process or step failed.
@@ -298,5 +329,5 @@ the boundaries in this document:
   headless Godot test runner.
 - Whether structured server-side test events are needed for milestone 1 or can
   wait until equipment/movement tests.
-- Whether the dedicated test zone is a new zone scene or a test fixture mode for
-  an existing zone.
+- Whether a dedicated test zone becomes worthwhile after measuring the `mvp`
+  zone's runtime and reliability in automation.

@@ -20,10 +20,10 @@ class TickContext:
 	var tick: int
 	var delta: float
 	var phase: TickPhase
-	var entities_moved: Array[BaseEntity]
+	var entities_with_processed_input: Array[BaseEntity]
 
 	func clear():
-		entities_moved.clear()
+		entities_with_processed_input.clear()
 
 func _ready() -> void:
 	GlobalTicker.before_tick.connect(_on_before_tick)
