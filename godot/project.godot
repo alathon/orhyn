@@ -62,6 +62,7 @@ jump={
 
 common/physics_ticks_per_second=20
 3d/physics_engine="Jolt Physics"
+common/physics_interpolation=true
 
 [rendering]
 
