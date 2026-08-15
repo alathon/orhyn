@@ -14,6 +14,20 @@ The impaired E2E runner builds and configures the proxy automatically:
 make e2e-impaired
 ```
 
+The separate remote-motion experience workload uses one proxy per client and
+records the real rendered remote entity without repeating eventual-consistency
+assertions:
+
+```sh
+make e2e-network-quality
+```
+
+To watch both client scenes during that workload, run:
+
+```sh
+make HEADLESS=0 e2e-network-quality
+```
+
 Use `go run . --help` in this directory for individual flags. `--ready-file`
 and `--stats-file` produce JSON artifacts for process coordination and failure
 diagnostics.

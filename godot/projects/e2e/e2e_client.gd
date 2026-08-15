@@ -19,6 +19,10 @@ func _run() -> void:
 		"client_role": _get_arg("--client-role", ""),
 		"zone_connect_address": _get_arg("--zone-connect-address", ""),
 		"zone_connect_port": int(_get_arg("--zone-connect-port", "0")),
+		"network_profile": _get_arg("--network-profile", "unspecified"),
+		"movement_duration_seconds": float(_get_arg("--movement-duration", "20")),
+		"metrics_drain_seconds": float(_get_arg("--metrics-drain", "1")),
+		"minimum_remote_motion_samples": int(_get_arg("--min-remote-motion-samples", "1")),
 	}
 	var result_file: String = _get_arg("--result-file", DEFAULT_RESULT_FILE)
 

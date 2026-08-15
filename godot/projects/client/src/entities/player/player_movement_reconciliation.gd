@@ -5,10 +5,12 @@ class Result:
 	var enabled: bool = true
 	var ack_seq: int = MovementSnapshotMsg.NO_PROCESSED_SEQ
 	var has_ack: bool = false
+	var stale_ack: bool = false
 	var missing_prediction_frame: bool = false
 	var correction_applied: bool = false
 	var ignored_tiny_drift: bool = false
 	var position_drift: float = 0.0
+	var body_correction_distance: float = 0.0
 	var pruned_count: int = 0
 	var replayed_count: int = 0
 
@@ -16,10 +18,12 @@ class Result:
 		enabled = is_enabled
 		ack_seq = acknowledged_seq
 		has_ack = false
+		stale_ack = false
 		missing_prediction_frame = false
 		correction_applied = false
 		ignored_tiny_drift = false
 		position_drift = 0.0
+		body_correction_distance = 0.0
 		pruned_count = 0
 		replayed_count = 0
 
@@ -30,6 +34,7 @@ class Result:
 @export var player_input: PlayerInput
 
 var _last_result: Result = Result.new()
+var _last_ack_seq: int = MovementSnapshotMsg.NO_PROCESSED_SEQ
 var _replay_frames: Array[PredictionRingBuffer.Frame] = []
 var _replay_input: MovementInputFrame = MovementInputFrame.new()
 
@@ -44,6 +49,12 @@ func reconcile(snapshot: MovementSnapshotMsg.EntitySnapshot, delta: float) -> Re
 		return result
 
 	result.has_ack = true
+	if _last_ack_seq != MovementSnapshotMsg.NO_PROCESSED_SEQ \
+			and result.ack_seq <= _last_ack_seq:
+		result.stale_ack = true
+		return result
+	_last_ack_seq = result.ack_seq
+
 	if body == null or player_input == null:
 		push_warning("PlayerMovementReconciliation requires body and player_input references")
 		return result
@@ -62,6 +73,7 @@ func reconcile(snapshot: MovementSnapshotMsg.EntitySnapshot, delta: float) -> Re
 		result.ignored_tiny_drift = true
 		return result
 
+	var body_position_before: Vector3 = body.global_position
 	player_input.write_unacknowledged_prediction_frames(result.ack_seq, _replay_frames)
 	_apply_authoritative_state(snapshot)
 	for frame in _replay_frames:
@@ -70,6 +82,7 @@ func reconcile(snapshot: MovementSnapshotMsg.EntitySnapshot, delta: float) -> Re
 		frame.write_predicted_state(body)
 		result.replayed_count += 1
 
+	result.body_correction_distance = body_position_before.distance_to(body.global_position)
 	result.correction_applied = true
 	if debug_corrections:
 		_print_correction(snapshot, acked_frame, result)
@@ -92,10 +105,11 @@ func _print_correction(
 	result: Result
 ) -> void:
 	print(
-		"reconcile seq=%d drift=%.3f replayed=%d predicted=%s authoritative=%s velocity=%s" %
+		"reconcile seq=%d drift=%.3f body_correction=%.3f replayed=%d predicted=%s authoritative=%s velocity=%s" %
 		[
 			result.ack_seq,
 			result.position_drift,
+			result.body_correction_distance,
 			result.replayed_count,
 			acked_frame.predicted_position,
 			snapshot.position,

@@ -30,6 +30,7 @@ var _game_server_api: GameServerAPI = null
 var _game_events: GameEventBus = null
 var _entity_spawner: ClientEntitySpawner = null
 var _client_actions: ClientActions = null
+var _network_metrics: ClientNetworkMetricsCollector = null
 var _action_result_codes: Dictionary[int, int] = {}
 var _entity_spawned_events: Array[EntitySpawnedGameEvent] = []
 var _entity_spawn_position_observations: Dictionary[int, Dictionary] = {}
@@ -121,6 +122,45 @@ func get_entity_ids() -> Array[int]:
 		entity_ids.append(entity_id)
 	entity_ids.sort()
 	return entity_ids
+
+func start_network_metrics_collection() -> bool:
+	if _network_metrics == null:
+		return false
+	_network_metrics.start_collection()
+	return true
+
+func start_remote_network_metrics_collection(entity_id: int) -> bool:
+	if _network_metrics == null:
+		return false
+	var remote: RemoteEntity = get_entity(entity_id) as RemoteEntity
+	if remote == null:
+		return false
+	return _network_metrics.start_remote_motion_collection(remote)
+
+func stop_network_metrics_collection() -> Dictionary:
+	if _network_metrics == null:
+		return {}
+	_network_metrics.stop_collection()
+	return _network_metrics.snapshot()
+
+func get_network_metrics_snapshot() -> Dictionary:
+	if _network_metrics == null:
+		return {}
+	return _network_metrics.snapshot()
+
+func wait_for_remote_interpolation_ready(
+	entity_id: int,
+	wait_timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+) -> bool:
+	var started_msec: int = Time.get_ticks_msec()
+	while _elapsed_seconds(started_msec) < wait_timeout_seconds:
+		var remote: RemoteEntity = get_entity(entity_id) as RemoteEntity
+		if remote != null and remote.interpolation_buffer.is_ready_for_observation():
+			return true
+		if _game_server_api != null:
+			_game_server_api.poll()
+		await get_tree().process_frame
+	return false
 
 func wait_for_exact_entity_ids(
 		expected_entity_ids: Array[int],
@@ -644,6 +684,10 @@ func _load_ingame_screen() -> bool:
 	if _client_actions == null:
 		return _fail("load_ingame_screen", "In-game screen has no ClientActions.")
 	_client_actions.action_resolved.connect(_on_action_resolved)
+
+	_network_metrics = _ingame_screen.network_metrics
+	if _network_metrics == null:
+		return _fail("load_ingame_screen", "In-game screen has no network metrics collector.")
 
 	return true
 

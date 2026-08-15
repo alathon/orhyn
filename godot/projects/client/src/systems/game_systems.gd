@@ -3,6 +3,7 @@ extends Node
 
 @onready var api: GameServerAPI = $API
 @onready var entity_spawner: ClientEntitySpawner = $EntitySpawner
+@onready var network_metrics: ClientNetworkMetricsCollector = $ClientNetworkMetricsCollector
 
 @export var screen_manager_group: StringName = ScreenManager.GROUP
 
@@ -75,7 +76,11 @@ func _reconcile_local_player(snapshot: MovementSnapshotMsg.EntitySnapshot) -> vo
 	if reconciliation == null:
 		return
 
-	reconciliation.reconcile(snapshot, _last_tick_delta)
+	var result: PlayerMovementReconciliation.Result = reconciliation.reconcile(
+		snapshot,
+		_last_tick_delta
+	)
+	network_metrics.record_reconciliation(result)
 
 func _on_loading_screen_shown(_screen: LoadingScreen) -> void:
 	_set_player_frozen_for_loading(true)

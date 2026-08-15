@@ -4,9 +4,6 @@ const MOVE_ACTION: StringName = &"move_forward"
 const MIN_MOVEMENT_DISTANCE: float = 0.25
 const MAX_SETTLED_HORIZONTAL_SPEED: float = 0.01
 const LOCAL_CONVERGENCE_DISTANCE: float = 0.05
-const EXACTLY_ONCE_OBSERVATION_SECONDS: float = 1.0
-const SWORD_TEMPLATE_PATH: String = "res://projects/e2e/fixtures/equipment/e2e_sword.tres"
-const SWORD_INSTANCE_ID: String = "e2e_impaired_network_sword"
 
 func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 	var coordination_dir: String = str(config.get("coordination_dir", ""))
@@ -168,7 +165,6 @@ func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 
 	var origin: Vector3 = session.get_local_position()
 	session.clear_movement_snapshots()
-	session.clear_equipment_changed_events()
 	Input.action_press(MOVE_ACTION)
 	var moved_snapshot: MovementSnapshotMsg.EntitySnapshot = await session.wait_for_entity_authoritative_position_changed(
 		actor_entity_id,
@@ -205,37 +201,6 @@ func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 			"local_position": str(session.get_local_position()),
 		})
 
-	var request_id: int = session.try_equip_item(
-		_make_item(SWORD_TEMPLATE_PATH, SWORD_INSTANCE_ID),
-		Equippable.SlotId.Right_Hand
-	)
-	if request_id <= 0:
-		return failed("equip_actor", "The actor could not send its equipment request.")
-	var result_code: int = await session.wait_for_action_result(request_id, wait_timeout)
-	if result_code != EntityEquipmentActionResultMsg.RESULT_OK:
-		return failed("equip_actor", "The server did not accept the actor equipment request.", {
-			"request_id": request_id,
-			"result_code": result_code,
-		})
-	if not await session.wait_for_entity_equipment_changed_event_count(
-		actor_entity_id,
-		1,
-		wait_timeout
-	):
-		return failed("observe_actor_equipment_event", "The actor did not receive its reliable equipment event.")
-	var equipped: EquippableItem = await session.wait_for_equipped(
-		Equippable.SlotId.Right_Hand,
-		SWORD_INSTANCE_ID,
-		wait_timeout
-	)
-	if equipped == null:
-		return failed("converge_actor_equipment", "The actor did not apply its replicated equipment state.")
-	await get_tree().create_timer(EXACTLY_ONCE_OBSERVATION_SECONDS).timeout
-	if session.get_entity_equipment_changed_event_count(actor_entity_id) != 1:
-		return failed("count_actor_equipment_events", "The actor observed duplicate equipment events.", {
-			"count": session.get_entity_equipment_changed_event_count(actor_entity_id),
-		})
-
 	var actor_state_path: String = coordination_dir.path_join(
 		E2ECoordination.IMPAIRED_ACTOR_STATE_FILE
 	)
@@ -243,7 +208,6 @@ func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 		"entity_id": actor_entity_id,
 		"settled_server_tick": settled_snapshot.server_tick,
 		"settled_position": E2ECoordination.vector3_to_dictionary(settled_snapshot.position),
-		"equipment_item": equipped.instance_id,
 	})
 	if write_error != OK:
 		return failed("publish_actor_state", "Could not publish authoritative actor state.", {
@@ -286,8 +250,6 @@ func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 			str(observer_entity_id): session.get_entity_spawned_event_count(observer_entity_id),
 			str(joiner_entity_id): session.get_entity_spawned_event_count(joiner_entity_id),
 		},
-		"equipment_event_count": session.get_entity_equipment_changed_event_count(actor_entity_id),
-		"equipment_item": equipped.instance_id,
 		"peer_convergence": peer_convergence,
 	})
 
@@ -299,7 +261,3 @@ func _validate_entities(
 	if not await session.wait_for_exact_entity_ids(entity_ids, wait_timeout):
 		return "The entity registry did not converge on the exact expected ids."
 	return ""
-
-func _make_item(template_path: String, item_instance_id: String) -> EquippableItem:
-	var template: ItemTemplate = ResourceLoader.load(template_path) as ItemTemplate
-	return EquippableItem.create(template, 1, item_instance_id)

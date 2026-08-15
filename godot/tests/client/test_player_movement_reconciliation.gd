@@ -98,6 +98,12 @@ func test_large_drift_applies_authoritative_state_and_replays_unacked_inputs() -
 	assert_true(result.correction_applied, "Large drift should correct the body")
 	assert_eq(result.pruned_count, 1, "Only the acked frame should be pruned")
 	assert_eq(result.replayed_count, 2, "Frames 2 and 3 should be replayed")
+	assert_almost_eq(
+		result.body_correction_distance,
+		8.0,
+		0.001,
+		"Visible correction should compare the body before and after replay"
+	)
 	assert_eq(player_input.get_prediction_frame(1), null, "Acked frame should be pruned")
 	assert_true(player_input.get_prediction_frame(2) != null, "Unacked frame 2 should remain")
 	assert_true(player_input.get_prediction_frame(3) != null, "Unacked frame 3 should remain")
@@ -132,6 +138,33 @@ func test_missing_prediction_frame_prunes_acknowledged_frames_without_correction
 	assert_false(result.correction_applied, "Missing frame cannot be safely replayed")
 	assert_eq(result.pruned_count, 0, "No existing frames were acknowledged")
 	assert_almost_eq(body.global_position.x, 50.0, 0.001, "Body should not be changed")
+
+func test_repeated_or_out_of_order_ack_is_stale_instead_of_missing() -> void:
+	var body: PhysicsBody = add_child_autofree(PhysicsBody.new()) as PhysicsBody
+	var player_input: PlayerInput = add_child_autofree(PlayerInput.new()) as PlayerInput
+	var reconciliation: PlayerMovementReconciliation = add_child_autofree(
+		PlayerMovementReconciliation.new()
+	) as PlayerMovementReconciliation
+	reconciliation.body = body
+	reconciliation.player_input = player_input
+
+	_store_prediction(player_input, body, 2, Vector3(2.0, 0.0, 0.0), Vector3.ZERO)
+	var snapshot: MovementSnapshotMsg.EntitySnapshot = _make_snapshot(
+		2,
+		Vector3(2.0, 0.0, 0.0),
+		Vector3.ZERO
+	)
+	reconciliation.reconcile(snapshot, TEST_DELTA)
+	var repeated_result: PlayerMovementReconciliation.Result = reconciliation.reconcile(
+		snapshot,
+		TEST_DELTA
+	)
+
+	assert_true(repeated_result.stale_ack, "Repeated acknowledgements should be classified as stale")
+	assert_false(
+		repeated_result.missing_prediction_frame,
+		"A pruned frame for a stale acknowledgement is not prediction-history loss"
+	)
 
 func _store_prediction(
 	player_input: PlayerInput,

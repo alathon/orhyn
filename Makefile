@@ -1,4 +1,5 @@
 ARGS ?=
+HEADLESS ?= 1
 POWERSHELL ?= pwsh
 
 ifeq ($(OS),Windows_NT)
@@ -15,7 +16,7 @@ RUN_SERVER_AND_CLIENT = ./scripts/run_server_and_client.sh
 RUN_E2E = ./scripts/run_e2e.sh
 endif
 
-.PHONY: help orchestrator run-orchestrator run_orchestrator zone run-zone run_zone servers run-servers run_servers server-and-client server_and_client run-server-and-client run_server_and_client e2e e2e-impaired
+.PHONY: help orchestrator run-orchestrator run_orchestrator zone run-zone run_zone servers run-servers run_servers server-and-client server_and_client run-server-and-client run_server_and_client e2e e2e-impaired e2e-network-quality
 
 help:
 	@printf '%s\n' \
@@ -26,6 +27,8 @@ help:
 		'  make server-and-client' \
 		'  make e2e' \
 		'  make e2e-impaired' \
+		'  make e2e-network-quality              # headless (default)' \
+		'  make HEADLESS=0 e2e-network-quality   # show both clients' \
 		'' \
 		'Set GODOT_BIN or GO_BIN to override executable names on Unix-like systems.'
 
@@ -46,3 +49,6 @@ e2e:
 
 e2e-impaired:
 	@./scripts/run_e2e_impaired.sh $(ARGS)
+
+e2e-network-quality:
+	@HEADLESS=$(HEADLESS) ./scripts/run_e2e_network_quality.sh $(ARGS)

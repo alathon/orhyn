@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://ljrqooiomv11"]
+[gd_scene load_steps=11 format=3 uid="uid://ljrqooiomv11"]
 
 [ext_resource type="Script" uid="uid://fv10dwsah2od" path="res://projects/client/src/screens/ingame/ingame_screen.gd" id="1_ingame_screen"]
 [ext_resource type="Script" uid="uid://cnq2s61glph30" path="res://projects/client/src/systems/game_systems.gd" id="2_game_systems"]
@@ -9,14 +9,16 @@
 [ext_resource type="Script" uid="uid://dcmh1ni873f7k" path="res://projects/client/src/client_zone_container.gd" id="7_zone_container"]
 [ext_resource type="Script" path="res://projects/common/src/game_events/game_event_bus.gd" id="8_game_event_bus"]
 [ext_resource type="Script" path="res://projects/client/src/systems/client_actions.gd" id="9_client_actions"]
+[ext_resource type="Script" path="res://projects/client/src/systems/client_network_metrics_collector.gd" id="10_network_metrics"]
 
-[node name="IngameScreen" type="Node3D" unique_id=239629701 node_paths=PackedStringArray("api", "zone_container", "game_events", "entity_spawner", "client_actions")]
+[node name="IngameScreen" type="Node3D" unique_id=239629701 node_paths=PackedStringArray("api", "zone_container", "game_events", "entity_spawner", "client_actions", "network_metrics")]
 script = ExtResource("1_ingame_screen")
 api = NodePath("GameSystems/API")
 zone_container = NodePath("ZoneContainer")
 game_events = NodePath("GameSystems/GameEvents")
 entity_spawner = NodePath("GameSystems/EntitySpawner")
 client_actions = NodePath("GameSystems/ClientActions")
+network_metrics = NodePath("GameSystems/ClientNetworkMetricsCollector")
 
 [node name="GameSystems" type="Node" parent="." unique_id=1368878515]
 unique_name_in_owner = true
@@ -46,6 +48,9 @@ unique_name_in_owner = true
 script = ExtResource("9_client_actions")
 api = NodePath("../API")
 entity_spawner = NodePath("../EntitySpawner")
+
+[node name="ClientNetworkMetricsCollector" type="Node" parent="GameSystems"]
+script = ExtResource("10_network_metrics")
 
 [node name="ZoneContainer" type="Node" parent="." unique_id=1803723499]
 unique_name_in_owner = true

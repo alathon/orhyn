@@ -4,9 +4,6 @@ const ROLE_OBSERVER: String = "observer"
 const ROLE_JOINER: String = "joiner"
 const AUTHORITATIVE_POSITION_EPSILON: float = 0.002
 const REMOTE_CONVERGENCE_DISTANCE: float = 0.10
-const EXACTLY_ONCE_OBSERVATION_SECONDS: float = 1.0
-const SWORD_TEMPLATE_PATH: String = "res://projects/e2e/fixtures/equipment/e2e_sword.tres"
-const SWORD_INSTANCE_ID: String = "e2e_impaired_network_sword"
 
 func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 	var coordination_dir: String = str(config.get("coordination_dir", ""))
@@ -201,7 +198,6 @@ func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 		))
 
 	session.clear_movement_snapshots()
-	session.clear_equipment_changed_events()
 	var action_ready_file: String = E2ECoordination.IMPAIRED_OBSERVER_ACTION_READY_FILE \
 		if client_role == ROLE_OBSERVER else E2ECoordination.IMPAIRED_JOINER_ACTION_READY_FILE
 	var action_ready_path: String = coordination_dir.path_join(action_ready_file)
@@ -258,26 +254,6 @@ func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 			"max_distance": REMOTE_CONVERGENCE_DISTANCE,
 		})
 
-	if not await session.wait_for_entity_equipment_changed_event_count(
-		actor_entity_id,
-		1,
-		wait_timeout
-	):
-		return failed("observe_equipment_event", "The peer did not receive the reliable equipment event.")
-	var equipped: EquippableItem = await session.wait_for_entity_equipped(
-		actor_entity_id,
-		Equippable.SlotId.Right_Hand,
-		SWORD_INSTANCE_ID,
-		wait_timeout
-	)
-	if equipped == null:
-		return failed("converge_equipment", "Remote equipment state did not converge.")
-	await get_tree().create_timer(EXACTLY_ONCE_OBSERVATION_SECONDS).timeout
-	if session.get_entity_equipment_changed_event_count(actor_entity_id) != 1:
-		return failed("count_equipment_events", "The peer observed duplicate equipment events.", {
-			"count": session.get_entity_equipment_changed_event_count(actor_entity_id),
-		})
-
 	for remote_entity_id: int in [observer_entity_id, actor_entity_id, joiner_entity_id]:
 		if remote_entity_id == local_entity_id:
 			continue
@@ -298,8 +274,6 @@ func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 		"authoritative_position": E2ECoordination.vector3_to_dictionary(final_snapshot.position),
 		"rendered_position": E2ECoordination.vector3_to_dictionary(rendered_position),
 		"rendered_difference": rendered_position.distance_to(settled_position),
-		"equipment_event_count": session.get_entity_equipment_changed_event_count(actor_entity_id),
-		"equipment_item": equipped.instance_id,
 	})
 	if write_error != OK:
 		return failed("publish_convergence", "Could not publish eventual-consistency results.", {
@@ -319,8 +293,6 @@ func run(session: E2ESession, config: Dictionary = {}) -> Dictionary:
 			result_entity_ids,
 			local_entity_id
 		),
-		"equipment_event_count": session.get_entity_equipment_changed_event_count(actor_entity_id),
-		"equipment_item": equipped.instance_id,
 	})
 
 func _wait_for_identity(

@@ -28,6 +28,15 @@ const IMPAIRED_ACTOR_STATE_FILE: String = "impaired-actor-state.json"
 const IMPAIRED_OBSERVER_CONVERGED_FILE: String = "impaired-observer-converged.json"
 const IMPAIRED_JOINER_CONVERGED_FILE: String = "impaired-joiner-converged.json"
 
+const NETWORK_QUALITY_LOW_READY_FILE: String = "network-quality-low-ready.json"
+const NETWORK_QUALITY_HIGH_READY_FILE: String = "network-quality-high-ready.json"
+const NETWORK_QUALITY_LOW_OBSERVER_READY_FILE: String = "network-quality-low-observer-ready.json"
+const NETWORK_QUALITY_LOW_MOVEMENT_DONE_FILE: String = "network-quality-low-movement-done.json"
+const NETWORK_QUALITY_LOW_OBSERVED_FILE: String = "network-quality-low-observed.json"
+const NETWORK_QUALITY_HIGH_OBSERVER_READY_FILE: String = "network-quality-high-observer-ready.json"
+const NETWORK_QUALITY_HIGH_MOVEMENT_DONE_FILE: String = "network-quality-high-movement-done.json"
+const NETWORK_QUALITY_HIGH_OBSERVED_FILE: String = "network-quality-high-observed.json"
+
 static func write_json(path: String, payload: Dictionary) -> Error:
 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
